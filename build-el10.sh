@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build and test the native Oracle Linux 10 package family.
+# Build and test the native Enterprise Linux 10 package families.
 set -euo pipefail
 
 ROOT=$(dirname "$(realpath "$0")")
@@ -18,7 +18,7 @@ mkdir -p "$SOURCES" "$OUT/el10"
 while IFS= read -r target; do
     el9_nginx_release_vars "$target"
     output="$OUT/el10/$EL9_VENDOR/$EL9_STREAM"
-    image="$EL9_IMAGE:$EL9_MAJOR"
+    image="$EL9_IMAGE:$EL9_IMAGE_TAG"
     mkdir -p "$output"
     docker run --rm --hostname packages.hosted-power.com \
         -v "$ROOT:/project:ro" \

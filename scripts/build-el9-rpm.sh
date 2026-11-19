@@ -22,14 +22,14 @@ dnf -q -y install ca-certificates cpio dnf-plugins-core gcc make patch \
     python3 python3-rpm rpm-build >/dev/null
 
 if [ -n "${EL9_NEXT_RELEASE:-}" ]; then
-    python3 - "$EL9_BASE_RELEASE" "$EL9_HOTFIX_RELEASE" \
-        "$EL9_NEXT_RELEASE" <<'PY'
+    python3 - "$EL9_EPOCH" "$EL9_VERSION" "$EL9_BASE_RELEASE" \
+        "$EL9_HOTFIX_RELEASE" "$EL9_NEXT_RELEASE" <<'PY'
 import rpm
 import sys
 
-base, hotfix, next_release = sys.argv[1:]
-assert rpm.labelCompare((None, None, base), (None, None, hotfix)) < 0
-assert rpm.labelCompare((None, None, hotfix), (None, None, next_release)) < 0
+epoch, version, base, hotfix, next_release = sys.argv[1:]
+assert rpm.labelCompare((epoch, version, base), (epoch, version, hotfix)) < 0
+assert rpm.labelCompare((epoch, version, hotfix), (epoch, version, next_release)) < 0
 PY
 fi
 

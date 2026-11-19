@@ -21,7 +21,7 @@ while IFS= read -r target; do
     if [ "$EL9_VENDOR" = rhel ]; then
         image="$EL9_IMAGE:latest"
     else
-        image="$EL9_IMAGE:$EL9_MAJOR"
+        image="$EL9_IMAGE:$EL9_IMAGE_TAG"
     fi
     mkdir -p "$output"
     docker run --rm --hostname packages.hosted-power.com \

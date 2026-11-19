@@ -79,7 +79,7 @@ el8_targets() {
 }
 
 el10_targets() {
-    printf '%s\n' oraclelinux10:base
+    printf '%s\n' rhel10:base rockylinux10:base oraclelinux10:base
 }
 
 el9_nginx_release_vars() {
@@ -88,6 +88,8 @@ el9_nginx_release_vars() {
     EL9_MAJOR=9
     EL9_HOTFIX_SUFFIX='.0.1.hp1'
     EL9_NEXT_RELEASE=''
+    EL9_IMAGE_TAG=''
+    EL9_SOURCE_REMOTE_FILE=''
 
     case "$1" in
         rhel8:1.24)
@@ -263,6 +265,39 @@ el9_nginx_release_vars() {
             EL9_SOURCE_URL='https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackageSource'
             EL9_MODULARITY_LABEL='nginx:1.26:9080020260915033551:9'
             ;;
+        rhel10:base)
+            EL9_VENDOR=rhel
+            EL9_STREAM=base
+            EL9_MAJOR=10
+            EL9_OS_ID=rhel
+            EL9_IMAGE='redhat/ubi10'
+            EL9_IMAGE_TAG=latest
+            EL9_EPOCH=2
+            EL9_VERSION=1.26.3
+            EL9_BASE_RELEASE='16.el10_3.1'
+            EL9_SOURCE_FILE='nginx-1.26.3-16.el10_3.1.rhel.src.rpm'
+            EL9_SOURCE_REMOTE_FILE='nginx-1.26.3-16.el10_3.1.src.rpm'
+            EL9_SOURCE_SHA256='b89b1a02f55282e8cd6f69d252c9ca196b84d7d0ddacea0debbd31789836702d'
+            EL9_SOURCE_URL='https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi10/10/x86_64/appstream/source/SRPMS/Packages/n'
+            EL9_MODULARITY_LABEL=''
+            EL9_NEXT_RELEASE='16.el10_3.2'
+            ;;
+        rockylinux10:base)
+            EL9_VENDOR=rockylinux
+            EL9_STREAM=base
+            EL9_MAJOR=10
+            EL9_OS_ID=rocky
+            EL9_IMAGE=rockylinux
+            EL9_EPOCH=2
+            EL9_VERSION=1.26.3
+            EL9_BASE_RELEASE='16.el10_3.1'
+            EL9_SOURCE_FILE='nginx-1.26.3-16.el10_3.1.rocky.src.rpm'
+            EL9_SOURCE_REMOTE_FILE='nginx-1.26.3-16.el10_3.1.src.rpm'
+            EL9_SOURCE_SHA256='3379a462633517fdd757383e213edf53578800ba5b266cd90e68678f88783b34'
+            EL9_SOURCE_URL='https://download.rockylinux.org/pub/rocky/10/AppStream/source/tree/Packages/n'
+            EL9_MODULARITY_LABEL=''
+            EL9_NEXT_RELEASE='16.el10_3.2'
+            ;;
         oraclelinux10:base)
             EL9_VENDOR=oraclelinux
             EL9_STREAM=base
@@ -283,6 +318,8 @@ el9_nginx_release_vars() {
             ;;
     esac
 
+    EL9_IMAGE_TAG=${EL9_IMAGE_TAG:-$EL9_MAJOR}
+    EL9_SOURCE_REMOTE_FILE=${EL9_SOURCE_REMOTE_FILE:-$EL9_SOURCE_FILE}
     EL9_HOTFIX_RELEASE="$EL9_BASE_RELEASE$EL9_HOTFIX_SUFFIX"
     EL9_BASE_EVR="$EL9_EPOCH:$EL9_VERSION-$EL9_BASE_RELEASE"
     EL9_HOTFIX_EVR="$EL9_EPOCH:$EL9_VERSION-$EL9_HOTFIX_RELEASE"

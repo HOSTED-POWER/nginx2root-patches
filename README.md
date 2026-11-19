@@ -14,9 +14,9 @@ Their versions are deliberately ordered below the next distribution update, so i
 your distribution ships its own update later, it takes over automatically through
 normal package upgrades.
 
-**Current status (19 November 2026):** `v1.6.1` contains native RHEL 8 and Rocky
-Linux 8 AppStream 1.24 package families. `v1.5.0` adds the required native
-Oracle Linux 10 package family. `v1.4.0` contains 13 native EL9 vendor/stream package
+**Current status (19 November 2026):** `v1.7.0` contains native RHEL 10, Rocky
+Linux 10, and Oracle Linux 10 package families. `v1.6.1` contains native RHEL 8
+and Rocky Linux 8 AppStream 1.24 package families. `v1.4.0` contains 13 native EL9 vendor/stream package
 families, alongside the existing Debian and CentOS 7/8 releases. The signed Hosted Power APT
 repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
 12 currently selects `hp3`. Debian 13 now selects Debian's newer
@@ -145,15 +145,25 @@ and the HTTP/3 connection-lifetime fix. Every package changelog names each CVE.
 
 ## Enterprise Linux 10
 
-RHEL 10, Rocky Linux 10, and AlmaLinux 10 now carry the fixed
-`1.26.3-16.el10_3.1` package lineage in their normal repositories and need no
-Hosted Power package. Oracle Linux 10 still ships
-`2:1.26.3-6.0.1.el10_2.7`; `v1.5.0` provides the exact native hotfix
-`2:1.26.3-6.0.1.el10_2.7.0.1.hp1` with all nine applicable fixes.
+AlmaLinux 10 carries the complete official
+`2:1.26.3-16.el10_3.1.alma.3` fix in its normal repositories. RHEL 10 and Rocky
+Linux 10 still ship `2:1.26.3-16.el10_3.1`, whose November 13 erratum predates
+nginx2root and fixes different CVEs. Red Hat still marks RHEL 10 affected with
+no erratum. Oracle Linux 10 still ships `2:1.26.3-6.0.1.el10_2.7`.
 
-The Oracle Linux 10 bundle preserves the original package split, configuration,
+The `v1.7.0` release provides separate native hotfixes with all nine applicable
+fixes:
+
+| Vendor | Base package | Hotfix package |
+|---|---|---|
+| RHEL 10 | `2:1.26.3-16.el10_3.1` | `2:1.26.3-16.el10_3.1.0.1.hp1` |
+| Rocky Linux 10 | `2:1.26.3-16.el10_3.1` | `2:1.26.3-16.el10_3.1.0.1.hp1` |
+| Oracle Linux 10 | `2:1.26.3-6.0.1.el10_2.7` | `2:1.26.3-6.0.1.el10_2.7.0.1.hp1` |
+
+Each bundle preserves that vendor's original package split, configuration,
 epoch, ABI, and non-modular identity. Its installer rejects every other OS,
-release, package family, and architecture.
+release, package family, and architecture. A later vendor `.2` package sorts
+above the RHEL and Rocky `.1.0.1.hp1` hotfix automatically.
 
 ## Download and install
 
@@ -251,11 +261,11 @@ sha256sum -c SHA256SUMS
 sudo ./install-el8-rpm.sh
 ```
 
-For Oracle Linux 10:
+For Enterprise Linux 10, download the exact vendor bundle. For example, RHEL 10:
 
 ```bash
-tar -xJf nginx2root-patches-v1.5.0-oraclelinux-el10-base-x86_64.tar.xz
-cd nginx2root-patches-v1.5.0-oraclelinux-el10-base-x86_64
+tar -xJf nginx2root-patches-v1.7.0-rhel-el10-base-x86_64.tar.xz
+cd nginx2root-patches-v1.7.0-rhel-el10-base-x86_64
 sha256sum -c SHA256SUMS
 sudo ./install-el10-rpm.sh
 ```
@@ -289,7 +299,7 @@ VERSION=v1.6.1 ./release-el8.sh
 JOBS=6 ./build-el9.sh
 VERSION=v1.4.0 ./release-el9.sh
 ./build-el10.sh
-VERSION=v1.5.0 ./release-el10.sh
+VERSION=v1.7.0 ./release-el10.sh
 ```
 
 The build:
@@ -314,7 +324,7 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 
 ## Scope
 
-- Architectures through `v1.6.0`: Debian amd64 and Enterprise Linux x86-64 only.
+- Architectures through `v1.7.0`: Debian amd64 and Enterprise Linux x86-64 only.
 - Debian 8, 9, 10, and 11 and CentOS 7 and 8 are EOL releases. Their NGINX
   hotfixes do not provide security support for the rest of the operating system.
 - Debian 8 through 11 source provenance is
@@ -346,3 +356,5 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 - [AlmaLinux NGINX security update guidance](https://almalinux.org/blog/2026-11-18-nginx2root/)
 - [AlmaLinux 9 erratum ALSA-2026-A025](https://errata.almalinux.org/9/ALSA-2026-A025.html)
 - [AlmaLinux 10 erratum ALSA-2026-A024](https://errata.almalinux.org/10/ALSA-2026-A024.html)
+- [Red Hat analysis: CVE-2026-123007](https://access.redhat.com/security/cve/CVE-2026-123007)
+- [Rocky Linux 10 source packages](https://download.rockylinux.org/pub/rocky/10/AppStream/source/tree/Packages/n/)

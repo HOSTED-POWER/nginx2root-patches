@@ -10,9 +10,9 @@ SCOPE=${2:-all}
 mkdir -p "$OUT"
 
 fetch() {
-    local url=$1 file=$2 sha256=$3 temporary
+    local url=$1 file=$2 sha256=$3 remote_file=${4:-$2} temporary
     temporary="$OUT/.${file}.tmp"
-    curl -fsSL --retry 3 -o "$temporary" "$url/$file"
+    curl -fsSL --retry 3 -o "$temporary" "$url/$remote_file"
     printf '%s  %s\n' "$sha256" "$temporary" | sha256sum --check --status || {
         rm -f "$temporary"
         echo "sha256 mismatch for $file" >&2
@@ -36,7 +36,8 @@ fi
 if [ "$SCOPE" = all ] || [ "$SCOPE" = el8 ]; then
     while IFS= read -r target; do
         el9_nginx_release_vars "$target"
-        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256" \
+            "$EL9_SOURCE_REMOTE_FILE"
     done < <(el8_targets)
 fi
 
@@ -51,13 +52,15 @@ fi
 if [ "$SCOPE" = all ] || [ "$SCOPE" = el9 ]; then
     while IFS= read -r target; do
         el9_nginx_release_vars "$target"
-        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256" \
+            "$EL9_SOURCE_REMOTE_FILE"
     done < <(el9_targets)
 fi
 
 if [ "$SCOPE" = all ] || [ "$SCOPE" = el10 ]; then
     while IFS= read -r target; do
         el9_nginx_release_vars "$target"
-        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256" \
+            "$EL9_SOURCE_REMOTE_FILE"
     done < <(el10_targets)
 fi

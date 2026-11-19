@@ -1,11 +1,11 @@
 #!/bin/bash
-# Create the deterministic Oracle Linux 10 release bundle.
+# Create the deterministic Enterprise Linux 10 release bundles.
 set -euo pipefail
 
 ROOT=$(dirname "$(realpath "$0")")
 OUT=$(realpath -m "${OUT:-$ROOT/out}")
 DEST=$(realpath -m "${DEST:-$ROOT/release}")
-VERSION=${VERSION:-v1.5.0}
+VERSION=${VERSION:-v1.7.0}
 
 . "$ROOT/versions.sh"
 mkdir -p "$DEST"
