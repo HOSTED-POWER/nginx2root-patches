@@ -29,3 +29,9 @@ done
 
 fetch "$CENTOS7_EPEL_SOURCE_POOL" "$CENTOS7_EPEL_SOURCE_FILE" \
     "$CENTOS7_EPEL_SOURCE_SHA256"
+
+for stream in 1.14 1.16 1.18 1.20; do
+    centos8_nginx_release_vars "$stream"
+    fetch "$CENTOS8_SOURCE_POOL" "$CENTOS8_SOURCE_FILE" \
+        "$CENTOS8_SOURCE_SHA256"
+done

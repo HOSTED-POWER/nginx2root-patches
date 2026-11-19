@@ -64,6 +64,54 @@ CENTOS7_EPEL_SOURCE_FILE='nginx-1.20.1-10.el7.src.rpm'
 CENTOS7_EPEL_SOURCE_SHA256='30827ad744c34ad009fc9fc57cebf74f724b0ad0ad3ea5c2ef744dfe8034855f'
 CENTOS7_EPEL_SOURCE_POOL='https://archives.fedoraproject.org/pub/archive/epel/7/SRPMS/Packages/n'
 
+CENTOS8_SOURCE_POOL='https://vault.centos.org/8.5.2111/AppStream/Source/SPackages'
+
+centos8_nginx_release_vars() {
+    CENTOS8_EPOCH='1'
+
+    case "$1" in
+        1.14)
+            CENTOS8_VERSION='1.14.1'
+            CENTOS8_BASE_RELEASE='9.module_el8.0.0+184+e34fea82'
+            CENTOS8_DIST='.module_el8.0.0+184+e34fea82'
+            CENTOS8_SOURCE_FILE='nginx-1.14.1-9.module_el8.0.0+184+e34fea82.src.rpm'
+            CENTOS8_SOURCE_SHA256='b0189b7a6e381f26057245de1045dc40edab7db63a6d72378da7304d50a0c127'
+            CENTOS8_MODULARITY_LABEL='nginx:1.14:8000020191007205758:55190bc5'
+            ;;
+        1.16)
+            CENTOS8_VERSION='1.16.1'
+            CENTOS8_BASE_RELEASE='2.module_el8.4.0+820+127618ce.1'
+            CENTOS8_DIST='.module_el8.4.0+820+127618ce'
+            CENTOS8_SOURCE_FILE='nginx-1.16.1-2.module_el8.4.0+820+127618ce.1.src.rpm'
+            CENTOS8_SOURCE_SHA256='17025b13af04306687ba587bbccc5869fcef6f8e33ac4bc55e102d6a8b039106'
+            CENTOS8_MODULARITY_LABEL='nginx:1.16:8040020210608144516:9f9e2e7e'
+            ;;
+        1.18)
+            CENTOS8_VERSION='1.18.0'
+            CENTOS8_BASE_RELEASE='3.module_el8.4.0+818+5ada96a6.1'
+            CENTOS8_DIST='.module_el8.4.0+818+5ada96a6'
+            CENTOS8_SOURCE_FILE='nginx-1.18.0-3.module_el8.4.0+818+5ada96a6.1.src.rpm'
+            CENTOS8_SOURCE_SHA256='970290daa21702335e09cad392a41eefa53567b6e608beb9e946e2758cc85be5'
+            CENTOS8_MODULARITY_LABEL='nginx:1.18:8040020210607141635:9f9e2e7e'
+            ;;
+        1.20)
+            CENTOS8_VERSION='1.20.0'
+            CENTOS8_BASE_RELEASE='2.module_el8.5.0+899+43b718f6'
+            CENTOS8_DIST='.module_el8.5.0+899+43b718f6'
+            CENTOS8_SOURCE_FILE='nginx-1.20.0-2.module_el8.5.0+899+43b718f6.src.rpm'
+            CENTOS8_SOURCE_SHA256='fa68723aa30665baab9bf0e2411eacb103080729d6eb71554b42db1c3637f1ed'
+            CENTOS8_MODULARITY_LABEL='nginx:1.20:8050020210825163922:b4937e53'
+            ;;
+        *)
+            echo "unsupported CentOS 8 NGINX stream: $1" >&2
+            return 1
+            ;;
+    esac
+
+    CENTOS8_HOTFIX_RELEASE="$CENTOS8_BASE_RELEASE.0.1.hp1"
+    CENTOS8_NEXT_RELEASE="$CENTOS8_BASE_RELEASE.1"
+}
+
 nginx_release_vars() {
     case "$1" in
         8)

@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT=$(dirname "$(realpath "$0")")
 OUT=$(realpath -m "${OUT:-$ROOT/out}")
 DEST=$(realpath -m "${DEST:-$ROOT/release}")
-VERSION=${VERSION:-v1.2.0}
+VERSION=${VERSION:-v1.3.0}
 
 mkdir -p "$DEST"
 work=$(mktemp -d)
@@ -42,6 +42,23 @@ cp "$ROOT/docs/"*.png "$bundle_dir/docs/"
 tar --sort=name --owner=0 --group=0 --numeric-owner \
     --mtime='2026-11-19 00:00:00 UTC' \
     -C "$work" -cJf "$DEST/$bundle.tar.xz" "$bundle"
+
+for stream in 1.14 1.16 1.18 1.20; do
+    source_dir="$OUT/centos8/$stream"
+    bundle="nginx2root-patches-$VERSION-centos8-appstream-$stream-x86_64"
+    bundle_dir="$work/$bundle"
+    mkdir -p "$bundle_dir/docs"
+    cp "$source_dir"/*.rpm "$bundle_dir/"
+    cp "$ROOT/install-centos8-rpm.sh" "$ROOT/README.md" "$bundle_dir/"
+    cp "$ROOT/docs/"*.png "$bundle_dir/docs/"
+    (
+        cd "$bundle_dir"
+        sha256sum ./*.rpm install-centos8-rpm.sh README.md docs/*.png > SHA256SUMS
+    )
+    tar --sort=name --owner=0 --group=0 --numeric-owner \
+        --mtime='2026-11-19 00:00:00 UTC' \
+        -C "$work" -cJf "$DEST/$bundle.tar.xz" "$bundle"
+done
 
 (
     cd "$DEST"

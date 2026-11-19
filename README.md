@@ -1,9 +1,10 @@
-# nginx2root patches for Debian and archived EPEL NGINX
+# nginx2root patches for Debian and CentOS NGINX
 
-Backported Debian and CentOS 7 EPEL packages for the November 2026 NGINX
-security fixes, built by [Hosted Power](https://www.hosted-power.com/). The
-repository contains the exact patches, pinned source inputs, reproducible build
-scripts, and package-upgrade tests.
+Backported Debian, CentOS 7 EPEL, and CentOS 8 AppStream packages for the
+November 2026 NGINX security fixes, built by
+[Hosted Power](https://www.hosted-power.com/). The repository contains the exact
+patches, pinned source inputs, reproducible build scripts, and package-upgrade
+tests.
 
 These packages contain the complete fixes for every nginx2root vulnerability that
 applies to each release. They are not a mitigation and need no follow-up.
@@ -17,9 +18,9 @@ normal package upgrades.
 
 *Debian Security Tracker on 19 November 2026. Click the screenshot for the live status.*
 
-## Packages: Debian 8 through 13 and CentOS 7 EPEL
+## Packages: Debian 8 through 13 and CentOS 7 through 8
 
-The `v1.2.0` release contains complete x86-64 package sets:
+The `v1.3.0` release contains complete x86-64 package sets:
 
 | Debian | Base package | Hotfix package | Included fixes |
 |---|---|---|---|
@@ -40,10 +41,20 @@ source tree is checked for the security-sensitive conditions before it is built.
 | Distribution | Base package | Hotfix package | Included fixes |
 |---|---|---|---|
 | CentOS 7 archived EPEL | `1:1.20.1-10.el7` | `1:1.20.1-10.el7.0.1.hp1` | CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-113425 |
+| CentOS 8 AppStream 1.14 (original/default) | `1:1.14.1-9.module_el8.0.0+184+e34fea82` | `1:1.14.1-9.module_el8.0.0+184+e34fea82.0.1.hp1` | CVE-2026-123007, CVE-2026-123634, CVE-2026-113425 |
+| CentOS 8 AppStream 1.16 | `1:1.16.1-2.module_el8.4.0+820+127618ce.1` | `1:1.16.1-2.module_el8.4.0+820+127618ce.1.0.1.hp1` | the same three |
+| CentOS 8 AppStream 1.18 | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1` | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1.0.1.hp1` | the same three |
+| CentOS 8 AppStream 1.20 | `1:1.20.0-2.module_el8.5.0+899+43b718f6` | `1:1.20.0-2.module_el8.5.0+899+43b718f6.0.1.hp1` | the same three, plus CVE-2026-123633 |
 
 The CentOS 7 package set targets only NGINX installed from the archived EPEL 7
 package family. The installer rejects nginx.org, control-panel, and other package
 families rather than attempting an unsafe cross-vendor replacement.
+
+CentOS Linux 8 shipped NGINX through AppStream from its first 1.14 default
+stream onward. Separate bundles preserve the exact package version, module
+stream identity, modularity label, package layout, and ABI for each of the four
+final official CentOS Linux 8 streams. The installer upgrades only an exact
+matching package family and rejects cross-stream or cross-vendor replacement.
 
 ## AlmaLinux 8 through 10
 
@@ -58,18 +69,19 @@ sudo dnf update nginx 'nginx-*'
 sudo nginx -t
 ```
 
-Retired AlmaLinux 8 streams 1.14, 1.16, 1.18, 1.20, and 1.22 are not covered by
-this repository. Migrate those installations to the supported 1.24 stream.
+The CentOS Linux 8 bundles must not be installed on AlmaLinux. Retired
+AlmaLinux 8 streams 1.14, 1.16, 1.18, 1.20, and 1.22 should be migrated to the
+supported 1.24 stream.
 
 ## Download and install
 
-Download the bundle for the exact Debian major version, or CentOS 7, from
+Download the bundle for the matching Debian or CentOS package family from
 [Releases](https://github.com/HOSTED-POWER/nginx2root-patches/releases), then:
 
 ```bash
-sha256sum -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.2.0-debian12-amd64.tar.xz
-cd nginx2root-patches-v1.2.0-debian12-amd64
+sha256sum --ignore-missing -c SHA256SUMS
+tar -xJf nginx2root-patches-v1.3.0-debian12-amd64.tar.xz
+cd nginx2root-patches-v1.3.0-debian12-amd64
 sha256sum -c SHA256SUMS
 sudo ./install.sh
 ```
@@ -100,9 +112,9 @@ publicly auditable and independently usable.
 For CentOS 7 with the archived EPEL package family:
 
 ```bash
-sha256sum -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.2.0-centos7-epel-x86_64.tar.xz
-cd nginx2root-patches-v1.2.0-centos7-epel-x86_64
+sha256sum --ignore-missing -c SHA256SUMS
+tar -xJf nginx2root-patches-v1.3.0-centos7-epel-x86_64.tar.xz
+cd nginx2root-patches-v1.3.0-centos7-epel-x86_64
 sha256sum -c SHA256SUMS
 sudo ./install-rpm.sh
 ```
@@ -110,6 +122,26 @@ sudo ./install-rpm.sh
 The RPM installer upgrades only already-installed NGINX packages from the bundle,
 checks configuration before and after, and verifies that an active service stays
 active.
+
+For CentOS Linux 8, first identify the installed AppStream family:
+
+```bash
+rpm -q nginx
+```
+
+Download the matching `centos8-appstream-1.14`, `1.16`, `1.18`, or `1.20`
+bundle. For example, for the original/default 1.14 line:
+
+```bash
+sha256sum --ignore-missing -c SHA256SUMS
+tar -xJf nginx2root-patches-v1.3.0-centos8-appstream-1.14-x86_64.tar.xz
+cd nginx2root-patches-v1.3.0-centos8-appstream-1.14-x86_64
+sha256sum -c SHA256SUMS
+sudo ./install-centos8-rpm.sh
+```
+
+The CentOS 8 installer has the same pre/post configuration and service checks,
+and additionally verifies the exact AppStream package release before upgrading.
 
 ## Safe upgrade path
 
@@ -139,24 +171,27 @@ On a host with Docker:
 
 The build:
 
-1. downloads exact Debian and archived EPEL source packages and verifies pinned SHA-256 hashes;
+1. downloads exact Debian, archived EPEL, and CentOS AppStream source packages
+   and verifies pinned SHA-256 hashes;
 2. applies the vendor source package changes, then the applicable reviewed security patches;
 3. checks the security-sensitive source conditions after patching;
-4. builds unprivileged inside clean matching `debian:8` through `debian:13` and `centos:7` containers;
+4. builds unprivileged inside clean matching `debian:8` through `debian:13`,
+   `centos:7`, and `centos:8` containers;
 5. upgrades a stock container, preserves the NGINX module ABI, runs `nginx -t`,
    and serves an HTTP/2 smoke request;
 6. confirms each hotfix sorts above the vulnerable package and below a future vendor update.
 
 The committed security patches are copied from Debian's fixed `nginx 1.30.6-4`
 source package and retain their upstream commit links and authorship. Older
-releases need narrowly scoped context adaptations in `scripts/build-deb.sh`; the
-resulting source semantics are checked by `scripts/test-patches.sh`.
+releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
+`scripts/build-centos8-rpm.sh`; the resulting source semantics are checked by
+`scripts/test-patches.sh`.
 
 ## Scope
 
-- Architectures in `v1.2.0`: Debian amd64 and CentOS 7 x86-64 only.
-- Debian 8, 9, 10, and 11 and CentOS 7 are EOL releases. Their NGINX hotfixes do
-  not provide security support for the rest of the operating system.
+- Architectures in `v1.3.0`: Debian amd64 and CentOS x86-64 only.
+- Debian 8, 9, 10, and 11 and CentOS 7 and 8 are EOL releases. Their NGINX
+  hotfixes do not provide security support for the rest of the operating system.
 - Debian 8 through 11 source provenance is
   Freexian Extended LTS, and users must separately ensure their full operating
   system remains supported and patched.
@@ -176,6 +211,7 @@ resulting source semantics are checked by `scripts/test-patches.sh`.
 - [Debian fixed source package](https://tracker.debian.org/pkg/nginx)
 - [Freexian Extended LTS repository](https://deb.freexian.com/extended-lts/)
 - [Archived EPEL 7 packages](https://archives.fedoraproject.org/pub/archive/epel/7/)
+- [Archived CentOS Linux 8 AppStream packages](https://vault.centos.org/8.5.2111/AppStream/)
 - [AlmaLinux NGINX security update guidance](https://almalinux.org/blog/2026-11-18-nginx2root/)
 - [AlmaLinux 9 erratum ALSA-2026-A025](https://errata.almalinux.org/9/ALSA-2026-A025.html)
 - [AlmaLinux 10 erratum ALSA-2026-A024](https://errata.almalinux.org/10/ALSA-2026-A024.html)

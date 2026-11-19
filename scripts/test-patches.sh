@@ -3,6 +3,8 @@
 set -euo pipefail
 SOURCE=$(realpath "$1")
 RELEASE=$2
+HTTP2_REUSE_REQUIRED=${3:-1}
+SMTP_READ_GUARD_REQUIRED=${4:-0}
 
 assert_contains() {
     local file=$1 expression=$2 description=$3
@@ -29,8 +31,10 @@ if [ "$RELEASE" -ge 9 ]; then
         exit 1
     fi
 
-    assert_contains src/http/v2/ngx_http_v2.c \
-        'ngx_reusable_connection(h2c->connection, 0);' 'HTTP/2 active-connection reuse guard'
+    if [ "$HTTP2_REUSE_REQUIRED" -eq 1 ]; then
+        assert_contains src/http/v2/ngx_http_v2.c \
+            'ngx_reusable_connection(h2c->connection, 0);' 'HTTP/2 active-connection reuse guard'
+    fi
 fi
 assert_contains src/core/ngx_resolver.c \
     'ngx_resolver_free_handler(ngx_resolver_ctx_t *ctx)' 'resolver deferred-free handler'
@@ -47,7 +51,7 @@ assert_contains src/mail/ngx_mail_proxy_module.c \
 assert_contains src/mail/ngx_mail_smtp_handler.c \
     'ngx_mail_smtp_block_writing(ngx_event_t *wev)' 'SMTP resolver write guard'
 
-if [ "$RELEASE" -le 10 ]; then
+if [ "$RELEASE" -le 10 ] || [ "$SMTP_READ_GUARD_REQUIRED" -eq 1 ]; then
     assert_contains src/mail/ngx_mail_smtp_handler.c \
         'ngx_mail_smtp_block_reading(ngx_event_t *rev)' 'SMTP resolver read prerequisite'
 fi
@@ -57,4 +61,4 @@ if [ "$RELEASE" = 13 ]; then
         'ngx_rbtree_insert(&qc->streams.tree, &qs->node);' 'QUIC early stream registration'
 fi
 
-echo "PASS: Debian $RELEASE source contains every required security condition"
+echo 'PASS: source contains every required security condition'

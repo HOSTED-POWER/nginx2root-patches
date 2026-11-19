@@ -45,4 +45,20 @@ docker run --rm \
     centos:7 \
     /project/scripts/test-rpm-package.sh /out
 
-echo "PASS: Debian 8 through 13 and CentOS 7 packages built and tested under $OUT"
+for stream in 1.14 1.16 1.18 1.20; do
+    rpm_output="$OUT/centos8/$stream"
+    mkdir -p "$rpm_output"
+    docker run --rm \
+        -v "$ROOT:/project:ro" \
+        -v "$SOURCES:/sources:ro" \
+        -v "$rpm_output:/out" \
+        centos:8 \
+        /project/scripts/build-centos8-rpm.sh /sources /out "$stream"
+    docker run --rm \
+        -v "$ROOT:/project:ro" \
+        -v "$rpm_output:/out:ro" \
+        centos:8 \
+        /project/scripts/test-centos8-rpm-package.sh /out "$stream"
+done
+
+echo "PASS: Debian 8 through 13, CentOS 7 EPEL and CentOS 8 AppStream packages built and tested under $OUT"
