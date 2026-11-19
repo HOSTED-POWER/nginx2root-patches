@@ -10,7 +10,7 @@ compare() {
     printf 'PASS: %s %s %s\n' "$left" "$operator" "$right"
 }
 
-for release in 9 10 11 12 13; do
+for release in 8 9 10 11 12 13; do
     nginx_release_vars "$release"
     case "$HOTFIX_VERSION" in
         *:*) echo "FAIL: epoch must not be introduced: $HOTFIX_VERSION" >&2; exit 1 ;;

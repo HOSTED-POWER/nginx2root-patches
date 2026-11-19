@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build and test all currently supported Debian package sets in clean containers.
+# Build and test all package sets in clean containers.
 set -euo pipefail
 
 ROOT=$(dirname "$(realpath "$0")")
@@ -15,7 +15,7 @@ mkdir -p "$SOURCES" "$OUT"
 "$ROOT/scripts/fetch-sources.sh" "$SOURCES"
 "$ROOT/scripts/test-version-order.sh"
 
-for release in 9 10 11 12 13; do
+for release in 8 9 10 11 12 13; do
     output="$OUT/debian$release"
     mkdir -p "$output"
     docker run --rm \
@@ -31,4 +31,18 @@ for release in 9 10 11 12 13; do
         /project/scripts/test-package.sh /out
 done
 
-echo "PASS: Debian 9 through 13 packages built and tested under $OUT"
+rpm_output="$OUT/centos7"
+mkdir -p "$rpm_output"
+docker run --rm \
+    -v "$ROOT:/project:ro" \
+    -v "$SOURCES:/sources:ro" \
+    -v "$rpm_output:/out" \
+    centos:7 \
+    /project/scripts/build-rpm.sh /sources /out
+docker run --rm \
+    -v "$ROOT:/project:ro" \
+    -v "$rpm_output:/out:ro" \
+    centos:7 \
+    /project/scripts/test-rpm-package.sh /out
+
+echo "PASS: Debian 8 through 13 and CentOS 7 packages built and tested under $OUT"

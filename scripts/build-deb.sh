@@ -7,6 +7,7 @@ HERE=$(dirname "$(realpath "$0")")
 ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
 . "$ROOT/scripts/configure-legacy-apt.sh"
+. "$ROOT/scripts/patch-helpers.sh"
 . /etc/os-release
 nginx_release_vars "$VERSION_ID"
 export DEBIAN_FRONTEND=noninteractive
@@ -28,21 +29,6 @@ cd "$SOURCE"
 export QUILT_PATCHES=debian/patches
 quilt push -a -q
 
-strip_patch_hunk() {
-    local patch_file=$1 marker=$2 temporary
-    temporary="$patch_file.tmp"
-    grep -qF "$marker" "$patch_file" || {
-        echo "patch context changed: $marker" >&2
-        exit 1
-    }
-    awk -v marker="$marker" '
-        $0 == marker { skip=1; next }
-        skip && /^@@ / { skip=0 }
-        !skip { print }
-    ' "$patch_file" > "$temporary"
-    mv "$temporary" "$patch_file"
-}
-
 if [ "$VERSION_ID" -le 10 ]; then
     prerequisite=mail-fixed-duplicate-resolving.patch
     cp "$PATCH_SOURCE/prerequisites/$prerequisite" "debian/patches/$prerequisite"
@@ -51,18 +37,29 @@ if [ "$VERSION_ID" -le 10 ]; then
     quilt refresh -p ab --no-timestamps --no-index
 fi
 
-patches=(
-    CVE-2026-123633.patch
-    CVE-2026-123634.patch
-    CVE-2026-123007.patch
-    CVE-2026-113425.patch
-)
+patches=(CVE-2026-123634.patch CVE-2026-113425.patch)
+if [ "$VERSION_ID" -ge 9 ]; then
+    patches=(
+        CVE-2026-123633.patch
+        CVE-2026-123634.patch
+        CVE-2026-123007.patch
+        CVE-2026-113425.patch
+    )
+fi
 [ "$VERSION_ID" = 13 ] && patches+=(CVE-2026-121810.patch)
 
 for patch in "${patches[@]}"; do
     source_patch="$PATCH_SOURCE/$patch"
     [ -f "$source_patch" ] || { echo "missing Debian security patch: $patch" >&2; exit 1; }
     cp "$source_patch" "debian/patches/$patch"
+    if [ "$VERSION_ID" = 8 ] && [ "$patch" = CVE-2026-123634.patch ]; then
+        strip_patch_hunk "debian/patches/$patch" \
+            '@@ -570,9 +571,11 @@ ngx_resolve_name_done(ngx_resolver_ctx_t *ctx)'
+        strip_patch_hunk "debian/patches/$patch" \
+            '@@ -2935,7 +2963,22 @@ ngx_resolver_process_srv(ngx_resolver_t *r, u_char *buf, size_t n,'
+        strip_patch_hunk "debian/patches/$patch" \
+            '@@ -2975,6 +3018,11 @@ ngx_resolver_resolve_srv_names(ngx_resolver_ctx_t *ctx, ngx_resolver_node_t *rn)'
+    fi
     if [ "$VERSION_ID" -le 12 ] && [ "$patch" = CVE-2026-123007.patch ]; then
         strip_patch_hunk "debian/patches/$patch" \
             '@@ -203,14 +204,15 @@ static ngx_http_v2_handler_pt ngx_http_v2_frame_states[] = {'
@@ -79,8 +76,22 @@ for patch in "${patches[@]}"; do
         strip_patch_hunk "debian/patches/$patch" \
             '@@ -165,6 +166,7 @@ ngx_mail_proxy_init(ngx_mail_session_t *s, ngx_addr_t *peer)'
     fi
+    if [ "$VERSION_ID" = 8 ] && [ "$patch" = CVE-2026-113425.patch ]; then
+        strip_patch_hunk "debian/patches/$patch" \
+            '@@ -415,8 +416,6 @@ ngx_mail_verify_cert(ngx_mail_session_t *s, ngx_connection_t *c)'
+        strip_patch_hunk "debian/patches/$patch" \
+            '@@ -436,8 +435,6 @@ ngx_mail_verify_cert(ngx_mail_session_t *s, ngx_connection_t *c)'
+    fi
     printf '%s\n' "$patch" >> debian/patches/series
     quilt push -q
+    if [ "$VERSION_ID" = 8 ] && [ "$patch" = CVE-2026-123634.patch ]; then
+        perl -0pi -e '
+            s/        ngx_log_error\(NGX_LOG_ALERT, r->log, 0,\n                      "could not cancel %V resolving", &ctx->name\);\n    }/        ngx_log_debug1(NGX_LOG_DEBUG_CORE, r->log, 0,\n                       "could not cancel %V resolving", &ctx->name);\n\n        ctx->handler = ngx_resolver_free_handler;\n    }/
+                or die "Jessie resolver cancellation block changed\n";
+            s/                    ctx->valid = ngx_time\(\) \+ \(r->valid \? r->valid : 10\);\n//
+                or die "Jessie resolver error validity line changed\n";
+        ' src/core/ngx_resolver.c
+    fi
     if [ "$VERSION_ID" -le 12 ] && [ "$patch" = CVE-2026-123007.patch ]; then
         perl -0pi -e '
             s/(ngx_http_v2_main_conf_t   \*h2mcf;\n    ngx_http_v2_connection_t  \*h2c;\n)/$1    ngx_http_v2_connection_private_t  *h2p;\n/

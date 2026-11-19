@@ -13,7 +13,13 @@ configure_legacy_apt() {
         echo 'Freexian archive key checksum mismatch' >&2
         exit 1
     }
-    cp "$key_source" "$key_target"
-    printf 'deb [signed-by=%s] http://deb.freexian.com/extended-lts %s main contrib non-free\n' \
-        "$key_target" "$codename" > /etc/apt/sources.list
+    if [ "$release" = 8 ]; then
+        apt-key add "$key_source" >/dev/null
+        printf 'deb http://deb.freexian.com/extended-lts %s main contrib non-free\n' \
+            "$codename" > /etc/apt/sources.list
+    else
+        cp "$key_source" "$key_target"
+        printf 'deb [signed-by=%s] http://deb.freexian.com/extended-lts %s main contrib non-free\n' \
+            "$key_target" "$codename" > /etc/apt/sources.list
+    fi
 }

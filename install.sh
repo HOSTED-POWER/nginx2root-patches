@@ -16,9 +16,11 @@ mapfile -t available_debs < <(find "$BUNDLE" -maxdepth 1 -type f -name '*.deb' -
     exit 1
 }
 
-nginx_deb=$(find "$BUNDLE" -maxdepth 1 -type f -name 'nginx_*.deb' -print -quit)
+nginx_deb=$(find "$BUNDLE" -maxdepth 1 -type f \
+    \( -name 'nginx_*.deb' -o -name 'nginx-extras_*.deb' -o \
+       -name 'nginx-full_*.deb' -o -name 'nginx-light_*.deb' \) -print -quit)
 [ -n "$nginx_deb" ] || {
-    echo 'ERROR: bundle has no nginx binary package' >&2
+    echo 'ERROR: bundle has no NGINX binary package' >&2
     exit 1
 }
 
@@ -50,8 +52,8 @@ for deb in "${available_debs[@]}"; do
     fi
 done
 
-printf '%s\n' "${selected_names[@]}" | grep -qx nginx || {
-    echo 'ERROR: nginx is not installed on this host' >&2
+printf '%s\n' "${selected_names[@]}" | grep -Eq '^nginx(|-core|-extras|-full|-light)$' || {
+    echo 'ERROR: no matching NGINX binary package is installed on this host' >&2
     exit 1
 }
 
@@ -61,7 +63,11 @@ if [ -d /run/systemd/system ] && systemctl is-active --quiet nginx; then
     was_active=1
 fi
 
-apt-get install -y --no-install-recommends "${selected_debs[@]}"
+if [ "$VERSION_ID" = 8 ]; then
+    dpkg -i "${selected_debs[@]}"
+else
+    apt-get install -y --no-install-recommends "${selected_debs[@]}"
+fi
 nginx -t
 
 if [ "$was_active" -eq 1 ]; then

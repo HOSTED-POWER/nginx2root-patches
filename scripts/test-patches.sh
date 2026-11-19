@@ -12,26 +12,34 @@ assert_contains() {
     }
 }
 
-assert_contains src/http/v2/ngx_http_v2.c \
-    'send_window = h2c->send_window' 'HTTP/2 queued-byte window calculation'
-assert_contains src/http/v2/ngx_http_v2.c \
-    '+ ngx_http_v2_connection_private(h2c)->send_queued;' 'HTTP/2 queued-byte accounting'
-assert_contains src/http/v2/ngx_http_v2.c \
-    'h2c = &h2p->connection;' 'HTTP/2 private connection allocation'
-assert_contains src/http/v2/ngx_http_v2_filter_module.c \
-    'ngx_http_v2_connection_private(h2c)->send_queued += frame_size;' 'HTTP/2 queue increment'
-assert_contains src/http/v2/ngx_http_v2_filter_module.c \
-    'ngx_http_v2_connection_private(h2c)->send_queued -= frame->length;' 'HTTP/2 queue decrement'
-if grep -qF 'if (window > NGX_HTTP_V2_MAX_WINDOW - h2c->send_window)' \
-    "$SOURCE/src/http/v2/ngx_http_v2.c"; then
-    echo 'vulnerable CVE-2026-123007 flow-control condition remains' >&2
-    exit 1
-fi
+if [ "$RELEASE" -ge 9 ]; then
+    assert_contains src/http/v2/ngx_http_v2.c \
+        'send_window = h2c->send_window' 'HTTP/2 queued-byte window calculation'
+    assert_contains src/http/v2/ngx_http_v2.c \
+        '+ ngx_http_v2_connection_private(h2c)->send_queued;' 'HTTP/2 queued-byte accounting'
+    assert_contains src/http/v2/ngx_http_v2.c \
+        'h2c = &h2p->connection;' 'HTTP/2 private connection allocation'
+    assert_contains src/http/v2/ngx_http_v2_filter_module.c \
+        'ngx_http_v2_connection_private(h2c)->send_queued += frame_size;' 'HTTP/2 queue increment'
+    assert_contains src/http/v2/ngx_http_v2_filter_module.c \
+        'ngx_http_v2_connection_private(h2c)->send_queued -= frame->length;' 'HTTP/2 queue decrement'
+    if grep -qF 'if (window > NGX_HTTP_V2_MAX_WINDOW - h2c->send_window)' \
+        "$SOURCE/src/http/v2/ngx_http_v2.c"; then
+        echo 'vulnerable CVE-2026-123007 flow-control condition remains' >&2
+        exit 1
+    fi
 
-assert_contains src/http/v2/ngx_http_v2.c \
-    'ngx_reusable_connection(h2c->connection, 0);' 'HTTP/2 active-connection reuse guard'
+    assert_contains src/http/v2/ngx_http_v2.c \
+        'ngx_reusable_connection(h2c->connection, 0);' 'HTTP/2 active-connection reuse guard'
+fi
 assert_contains src/core/ngx_resolver.c \
     'ngx_resolver_free_handler(ngx_resolver_ctx_t *ctx)' 'resolver deferred-free handler'
+assert_contains src/core/ngx_resolver.c \
+    'ctx->handler = ngx_resolver_free_handler;' 'resolver detached-context handler'
+assert_contains src/core/ngx_resolver.c \
+    'ctx->handler != ngx_resolver_free_handler' 'resolver deferred cleanup guard'
+assert_contains src/core/ngx_resolver.c \
+    'if (ngx_resolve_name_locked(r, ctx, &name) == NGX_ERROR)' 'resolver CNAME restart error handling'
 assert_contains src/mail/ngx_mail_auth_http_module.c \
     'ngx_mail_auth_http_block_write(ngx_event_t *wev)' 'mail asynchronous write guard'
 assert_contains src/mail/ngx_mail_proxy_module.c \

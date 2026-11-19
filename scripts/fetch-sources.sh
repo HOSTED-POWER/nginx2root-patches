@@ -21,8 +21,11 @@ fetch() {
     printf '%s  %s\n' "$sha256" "$OUT/$file" | sha256sum --check
 }
 
-for release in 9 10 11 12 13; do
+for release in 8 9 10 11 12 13; do
     nginx_release_vars "$release"
     fetch "$SOURCE_POOL" "$ORIG_FILE" "$ORIG_SHA256"
     fetch "$SOURCE_POOL" "$DEBIAN_FILE" "$DEBIAN_SHA256"
 done
+
+fetch "$CENTOS7_EPEL_SOURCE_POOL" "$CENTOS7_EPEL_SOURCE_FILE" \
+    "$CENTOS7_EPEL_SOURCE_SHA256"
