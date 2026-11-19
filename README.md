@@ -14,6 +14,14 @@ Their versions are deliberately ordered below the next distribution update, so i
 your distribution ships its own update later, it takes over automatically through
 normal package upgrades.
 
+**Current status (19 November 2026):** the public
+[`v1.3.1` release](https://github.com/HOSTED-POWER/nginx2root-patches/releases/tag/v1.3.1)
+contains all 11 platform bundles plus `SHA256SUMS`. The signed Hosted Power APT
+repository also carries the complete Debian 12 and 13 `hp2` package sets. Debian
+12 currently selects `hp2`. Debian 13 now selects Debian's newer
+`1.26.3-3+deb13u11` automatically; inspection of that source package confirms
+that it contains all nine applicable NGINX 1.30.7 security patches listed here.
+
 ## Keep HTTP/2 on
 
 **Disabling HTTP/2 does not fix nginx2root.** It only blocks CVE-2026-123007 and
@@ -45,6 +53,12 @@ distribution update:
 | 12 Bookworm | `1.22.1-9+deb12u10` | `1.22.1-9+deb12u10.1~hp2` | the same seven, plus CVE-2026-15176, CVE-2026-93479, CVE-2026-97205 and additional CVE-2023-44487 hardening |
 | 13 Trixie | `1.26.3-3+deb13u10` | `1.26.3-3+deb13u10.1~hp2` | all nine applicable NGINX 1.30.7 fixes, including CVE-2026-120967 and CVE-2026-121810 |
 
+Debian's official Trixie `1.26.3-3+deb13u11` package now supersedes the Trixie
+hotfix through normal version ordering. Its source has the same nine relevant
+patches, including the HTTP/2, resolver, mail, QUIC, request-body, stream SNI,
+`ssl_preread`, and `try_files` fixes. The Debian security tracker may lag the
+package archive briefly while its fixed-version data is updated.
+
 Debian 8 NGINX predates HTTP/2, so CVE-2026-123007 and CVE-2026-123633 do not
 apply. Its package contains all three fixes applicable to that old source tree. Debian 8 through
 11 use source packages from Freexian Extended LTS.
@@ -72,11 +86,12 @@ matching package family and rejects cross-stream or cross-vendor replacement.
 
 ## AlmaLinux 8 through 10
 
-AlmaLinux released official fixed NGINX packages on 18 November 2026 for every
-stream still in its RHEL lifecycle. AlmaLinux 8 users should select the supported
-`nginx:1.24` stream; AlmaLinux 9 has fixed default 1.20 and supported 1.24/1.26
-streams; AlmaLinux 10 has fixed default 1.26 packages. Update these systems from
-the normal AlmaLinux repositories:
+AlmaLinux now has complete official fixes for the five headline NGINX2Root CVEs
+on every supported stream. The follow-up packages matter: on AlmaLinux 9 these
+are the default 1.20 `.alma.4`, 1.24 `.alma.4`, and 1.26 `.alma.2` builds; on
+AlmaLinux 10 it is the 1.26 `.alma.3` build. Earlier `.alma.2`/`.alma.3` packages
+from the initial advisories fixed only the two HTTP/2 issues. Update from the
+normal AlmaLinux repositories rather than installing a CentOS bundle:
 
 ```bash
 sudo dnf update nginx 'nginx-*'
@@ -85,7 +100,8 @@ sudo nginx -t
 
 The CentOS Linux 8 bundles must not be installed on AlmaLinux. Retired
 AlmaLinux 8 streams 1.14, 1.16, 1.18, 1.20, and 1.22 should be migrated to the
-supported 1.24 stream.
+supported 1.24 stream. AlmaLinux 9's retired 1.22 stream has not received these
+fixes and should likewise be migrated to 1.24 or 1.26.
 
 ## Download and install
 
