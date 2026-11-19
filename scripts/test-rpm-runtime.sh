@@ -74,7 +74,13 @@ done
     exit 1
 }
 
-nghttp http://127.0.0.1:18082/ 2>&1 | grep -q 'nginx hotfix HTTP/2 response'
+if command -v nghttp >/dev/null 2>&1; then
+    nghttp http://127.0.0.1:18082/ 2>&1 |
+        grep -q 'nginx hotfix HTTP/2 response'
+else
+    curl --http2-prior-knowledge -fsS http://127.0.0.1:18082/ |
+        grep -q 'nginx hotfix HTTP/2 response'
+fi
 curl -fsS http://127.0.0.1:18083/ | grep -q 'nginx hotfix backend response'
 smtp_greeting=$(
     exec 3<>/dev/tcp/127.0.0.1/18025

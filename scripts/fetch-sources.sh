@@ -35,3 +35,8 @@ for stream in 1.14 1.16 1.18 1.20; do
     fetch "$CENTOS8_SOURCE_POOL" "$CENTOS8_SOURCE_FILE" \
         "$CENTOS8_SOURCE_SHA256"
 done
+
+while IFS= read -r target; do
+    el9_nginx_release_vars "$target"
+    fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+done < <(el9_targets)

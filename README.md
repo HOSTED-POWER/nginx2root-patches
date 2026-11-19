@@ -1,6 +1,6 @@
-# nginx2root patches for Debian and CentOS NGINX
+# nginx2root patches for Debian and Enterprise Linux NGINX
 
-Backported Debian, CentOS 7 EPEL, and CentOS 8 AppStream packages for the
+Backported Debian and Enterprise Linux packages for the
 November 2026 NGINX security fixes, built by
 [Hosted Power](https://www.hosted-power.com/). The repository contains the exact
 patches, pinned source inputs, reproducible build scripts, and package-upgrade
@@ -14,9 +14,9 @@ Their versions are deliberately ordered below the next distribution update, so i
 your distribution ships its own update later, it takes over automatically through
 normal package upgrades.
 
-**Current status (19 November 2026):** the public
-[`v1.3.2` release](https://github.com/HOSTED-POWER/nginx2root-patches/releases/tag/v1.3.2)
-contains all 11 platform bundles plus `SHA256SUMS`. The signed Hosted Power APT
+**Current status (19 November 2026):** the public `v1.4.0` release contains the
+existing Debian, CentOS 7/8, and 13 new native EL9 vendor/stream package
+families. The signed Hosted Power APT
 repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
 12 currently selects `hp3`. Debian 13 now selects Debian's newer
 `1.26.3-3+deb13u11` automatically; inspection of that source package confirms
@@ -38,7 +38,7 @@ NGINX), re-enable HTTP/2 (`listen 443 ssl http2;` on Debian 9–12 and CentOS 7/
 
 *Debian Security Tracker on 19 November 2026. Click the screenshot for the live status.*
 
-## Packages: Debian 8 through 13 and CentOS 7 through 8
+## Packages: Debian 8 through 13 and Enterprise Linux 7 through 9
 
 The `v1.3.2` release contains complete x86-64 package sets. Its `hp3` package
 revision upgrades the earlier builds while remaining below the next distribution
@@ -105,11 +105,30 @@ sudo nginx -t
 The CentOS Linux 8 bundles must not be installed on AlmaLinux. Retired
 AlmaLinux 8 streams 1.14, 1.16, 1.18, 1.20, and 1.22 should be migrated to the
 supported 1.24 stream. AlmaLinux 9's retired 1.22 stream has not received these
-fixes and should likewise be migrated to 1.24 or 1.26.
+fixes. The `v1.4.0` release includes an exact native package for that retired
+stream where an immediate stream migration is not practical.
+
+## Enterprise Linux 9
+
+The `v1.4.0` release adds 13 native x86-64 package families. Each bundle is
+built from that vendor's exact SRPM and preserves its epoch, release lineage,
+modularity label, package split, configuration, and module ABI. Installers
+reject another vendor, stream, package release, or architecture.
+
+| Vendor | Included NGINX families |
+|---|---|
+| Red Hat Enterprise Linux 9 | base 1.20, AppStream 1.22, 1.24, and 1.26 |
+| AlmaLinux 9 | retired AppStream 1.22 only; supported streams have official fixes |
+| Rocky Linux 9 | base 1.20, AppStream 1.22, 1.24, and 1.26 |
+| Oracle Linux 9 | base 1.20, AppStream 1.22, 1.24, and 1.26 |
+
+The 1.20, 1.22, and 1.24 bundles contain the seven applicable fixes. The 1.26
+bundles contain all nine applicable fixes, including stream SNI verification
+and the HTTP/3 connection-lifetime fix. Every package changelog names each CVE.
 
 ## Download and install
 
-Download the bundle for the matching Debian or CentOS package family from
+Download the bundle for the matching Debian or Enterprise Linux package family from
 [Releases](https://github.com/HOSTED-POWER/nginx2root-patches/releases), then:
 
 ```bash
@@ -177,6 +196,21 @@ sudo ./install-centos8-rpm.sh
 The CentOS 8 installer has the same pre/post configuration and service checks,
 and additionally verifies the exact AppStream package release before upgrading.
 
+For EL9, identify the vendor and installed family, then download the exact
+matching bundle:
+
+```bash
+cat /etc/os-release
+rpm -q nginx
+tar -xJf nginx2root-patches-v1.4.0-rockylinux-el9-1.26-x86_64.tar.xz
+cd nginx2root-patches-v1.4.0-rockylinux-el9-1.26-x86_64
+sha256sum -c SHA256SUMS
+sudo ./install-el9-rpm.sh
+```
+
+The EL9 installer upgrades only the NGINX packages already installed, runs
+`nginx -t` before and after, and confirms an active service remains active.
+
 ## Safe upgrade path
 
 The version ordering is intentional:
@@ -201,6 +235,8 @@ On a host with Docker:
 ```bash
 ./build.sh
 ./release.sh
+JOBS=6 ./build-el9.sh
+VERSION=v1.4.0 ./release-el9.sh
 ```
 
 The build:
@@ -225,7 +261,7 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 
 ## Scope
 
-- Architectures in `v1.3.2`: Debian amd64 and CentOS x86-64 only.
+- Architectures through `v1.4.0`: Debian amd64 and Enterprise Linux x86-64 only.
 - Debian 8, 9, 10, and 11 and CentOS 7 and 8 are EOL releases. Their NGINX
   hotfixes do not provide security support for the rest of the operating system.
 - Debian 8 through 11 source provenance is

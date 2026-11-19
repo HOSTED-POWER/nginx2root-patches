@@ -66,6 +66,175 @@ CENTOS7_EPEL_SOURCE_POOL='https://archives.fedoraproject.org/pub/archive/epel/7/
 
 CENTOS8_SOURCE_POOL='https://vault.centos.org/8.5.2111/AppStream/Source/SPackages'
 
+el9_targets() {
+    printf '%s\n' \
+        rhel:base rhel:1.22 rhel:1.24 rhel:1.26 \
+        almalinux:1.22 \
+        rockylinux:base rockylinux:1.22 rockylinux:1.24 rockylinux:1.26 \
+        oraclelinux:base oraclelinux:1.22 oraclelinux:1.24 oraclelinux:1.26
+}
+
+el9_nginx_release_vars() {
+    EL9_VENDOR=${1%%:*}
+    EL9_STREAM=${1#*:}
+    EL9_MAJOR=9
+    EL9_HOTFIX_SUFFIX='.0.1.hp1'
+
+    case "$1" in
+        rhel:base)
+            EL9_OS_ID=rhel
+            EL9_IMAGE='registry.access.redhat.com/ubi9/ubi'
+            EL9_EPOCH=2
+            EL9_VERSION=1.20.1
+            EL9_BASE_RELEASE='32.el9_9.1'
+            EL9_SOURCE_FILE='nginx-1.20.1-32.el9_9.1.src.rpm'
+            EL9_SOURCE_SHA256='5ff321c686c9283c962d0d4b61d34c82f68b26b0f9459470e6a81a85cbd84f78'
+            EL9_SOURCE_URL='https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n'
+            EL9_MODULARITY_LABEL=''
+            ;;
+        rhel:1.22)
+            EL9_OS_ID=rhel
+            EL9_IMAGE='registry.access.redhat.com/ubi9/ubi'
+            EL9_EPOCH=1
+            EL9_VERSION=1.22.1
+            EL9_BASE_RELEASE='8.module+el9.5.0+22953+b175c265.1'
+            EL9_SOURCE_FILE='nginx-1.22.1-8.module+el9.5.0+22953+b175c265.1.src.rpm'
+            EL9_SOURCE_SHA256='37a3b8a58bc082185cfadf2edbfe6fa6407aabaa5a067e7dcfa2826e78fb897f'
+            EL9_SOURCE_URL='https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.22:9050020250324053651:9'
+            ;;
+        rhel:1.24)
+            EL9_OS_ID=rhel
+            EL9_IMAGE='registry.access.redhat.com/ubi9/ubi'
+            EL9_EPOCH=1
+            EL9_VERSION=1.24.0
+            EL9_BASE_RELEASE='9.module+el9.9.0+25250+16ab46e3.1'
+            EL9_SOURCE_FILE='nginx-1.24.0-9.module+el9.9.0+25250+16ab46e3.1.src.rpm'
+            EL9_SOURCE_SHA256='b77b31bc6013a3835087f9cfd6f045301efe0cf5352fd5d29cc2675fbc7677fc'
+            EL9_SOURCE_URL='https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.24:9090020261031155201:9'
+            ;;
+        rhel:1.26)
+            EL9_OS_ID=rhel
+            EL9_IMAGE='registry.access.redhat.com/ubi9/ubi'
+            EL9_EPOCH=2
+            EL9_VERSION=1.26.3
+            EL9_BASE_RELEASE='10.module+el9.9.0+25249+8b47ea83.1'
+            EL9_SOURCE_FILE='nginx-1.26.3-10.module+el9.9.0+25249+8b47ea83.1.src.rpm'
+            EL9_SOURCE_SHA256='66b1e75825f93c4be35c3271d7a35d3e2b7c16293771d21a3eec2794cbe373dc'
+            EL9_SOURCE_URL='https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/appstream/source/SRPMS/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.26:9090020261030210523:9'
+            ;;
+        almalinux:1.22)
+            EL9_OS_ID=almalinux
+            EL9_IMAGE=almalinux
+            EL9_EPOCH=1
+            EL9_VERSION=1.22.1
+            EL9_BASE_RELEASE='8.module_el9.7.0+241+58ccfb8b.1.alma.2'
+            EL9_SOURCE_FILE='nginx-1.22.1-8.module_el9.7.0+241+58ccfb8b.1.alma.2.src.rpm'
+            EL9_SOURCE_SHA256='e52aeeadbc7665f22db6c0be74756a7222b8d83f108740fe187603d2fdec25a4'
+            EL9_SOURCE_URL='https://vault.almalinux.org/9.7/AppStream/Source/Packages'
+            EL9_MODULARITY_LABEL='nginx:1.22:9070020260514160703:8cf767d6'
+            ;;
+        rockylinux:base)
+            EL9_OS_ID=rocky
+            EL9_IMAGE=rockylinux
+            EL9_EPOCH=2
+            EL9_VERSION=1.20.1
+            EL9_BASE_RELEASE='32.el9_9.1.rocky.0.1'
+            EL9_SOURCE_FILE='nginx-1.20.1-32.el9_9.1.rocky.0.1.src.rpm'
+            EL9_SOURCE_SHA256='023272d989cae926a74dbfd8c4ec04f443807c75fb8ea84f07d2ba5ef6171dfe'
+            EL9_SOURCE_URL='https://dl.rockylinux.org/pub/rocky/9/AppStream/source/tree/Packages/n'
+            EL9_MODULARITY_LABEL=''
+            ;;
+        rockylinux:1.22)
+            EL9_OS_ID=rocky
+            EL9_IMAGE=rockylinux
+            EL9_EPOCH=1
+            EL9_VERSION=1.22.1
+            EL9_BASE_RELEASE='8.module+el9.7.0+40008+ca1c123e.1'
+            EL9_SOURCE_FILE='nginx-1.22.1-8.module+el9.7.0+40008+ca1c123e.1.src.rpm'
+            EL9_SOURCE_SHA256='38f9071d1aeb6624536f1dd56ea9dc7c235cc4258e01f683537379712fe78380'
+            EL9_SOURCE_URL='https://dl.rockylinux.org/pub/rocky/9/AppStream/source/tree/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.22:9070020251118192037:9'
+            ;;
+        rockylinux:1.24)
+            EL9_OS_ID=rocky
+            EL9_IMAGE=rockylinux
+            EL9_EPOCH=1
+            EL9_VERSION=1.24.0
+            EL9_BASE_RELEASE='9.module+el9.9.0+40426+33f86305.1.rocky.0.1'
+            EL9_SOURCE_FILE='nginx-1.24.0-9.module+el9.9.0+40426+33f86305.1.rocky.0.1.src.rpm'
+            EL9_SOURCE_SHA256='cd0c79313bc92bd579e1d5cb83bd514313f5bb820d1ba8dcc4646757565d7ead'
+            EL9_SOURCE_URL='https://dl.rockylinux.org/pub/rocky/9/AppStream/source/tree/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.24:9090020261111140603:9'
+            ;;
+        rockylinux:1.26)
+            EL9_OS_ID=rocky
+            EL9_IMAGE=rockylinux
+            EL9_EPOCH=2
+            EL9_VERSION=1.26.3
+            EL9_BASE_RELEASE='10.module+el9.9.0+40427+6a1991db.1'
+            EL9_SOURCE_FILE='nginx-1.26.3-10.module+el9.9.0+40427+6a1991db.1.src.rpm'
+            EL9_SOURCE_SHA256='877417248955130e8b2027396bf284da54db1017977ccf96d0bbc0fd45d9af3a'
+            EL9_SOURCE_URL='https://dl.rockylinux.org/pub/rocky/9/AppStream/source/tree/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.26:9090020261111140555:9'
+            ;;
+        oraclelinux:base)
+            EL9_OS_ID=ol
+            EL9_IMAGE=oraclelinux
+            EL9_EPOCH=2
+            EL9_VERSION=1.20.1
+            EL9_BASE_RELEASE='28.0.1.el9_8.6'
+            EL9_SOURCE_FILE='nginx-1.20.1-28.0.1.el9_8.6.src.rpm'
+            EL9_SOURCE_SHA256='4104d1404fa75a74bab2bb1308719a967d3cb0d9ea30604c979617acc78196f0'
+            EL9_SOURCE_URL='https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackageSource'
+            EL9_MODULARITY_LABEL=''
+            ;;
+        oraclelinux:1.22)
+            EL9_OS_ID=ol
+            EL9_IMAGE=oraclelinux
+            EL9_EPOCH=1
+            EL9_VERSION=1.22.1
+            EL9_BASE_RELEASE='8.0.1.module+el9.5.0+90542+e87a1bbf.1'
+            EL9_SOURCE_FILE='nginx-1.22.1-8.0.1.module+el9.5.0+90542+e87a1bbf.1.src.rpm'
+            EL9_SOURCE_SHA256='8f4c9135ded7be54fd95f9974f0e8a50c51d7b8bfcb52f6beebd5a2c3362d1d0'
+            EL9_SOURCE_URL='https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackageSource'
+            EL9_MODULARITY_LABEL='nginx:1.22:9050020250324053651:2e2f0e1c'
+            ;;
+        oraclelinux:1.24)
+            EL9_OS_ID=ol
+            EL9_IMAGE=oraclelinux
+            EL9_EPOCH=1
+            EL9_VERSION=1.24.0
+            EL9_BASE_RELEASE='7.0.1.module+el9.8.0+91033+c4928ca1.5'
+            EL9_SOURCE_FILE='nginx-1.24.0-7.0.1.module+el9.8.0+91033+c4928ca1.5.src.rpm'
+            EL9_SOURCE_SHA256='c43c5570a7be44ba57ecc6a31476c87474e1c827df94b598722d44c2e2a965cc'
+            EL9_SOURCE_URL='https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackageSource'
+            EL9_MODULARITY_LABEL='nginx:1.24:9080020260915044647:8200baa1'
+            ;;
+        oraclelinux:1.26)
+            EL9_OS_ID=ol
+            EL9_IMAGE=oraclelinux
+            EL9_EPOCH=2
+            EL9_VERSION=1.26.3
+            EL9_BASE_RELEASE='9.0.1.module+el9.8.0+91031+6e548d4b.4'
+            EL9_SOURCE_FILE='nginx-1.26.3-9.0.1.module+el9.8.0+91031+6e548d4b.4.src.rpm'
+            EL9_SOURCE_SHA256='7e837161357eac4533efdd29f027e493474c21127289fda335d006b46cd0abd3'
+            EL9_SOURCE_URL='https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackageSource'
+            EL9_MODULARITY_LABEL='nginx:1.26:9080020260915033551:9'
+            ;;
+        *)
+            echo "unsupported EL9 NGINX target: $1" >&2
+            return 1
+            ;;
+    esac
+
+    EL9_HOTFIX_RELEASE="$EL9_BASE_RELEASE$EL9_HOTFIX_SUFFIX"
+    EL9_BASE_EVR="$EL9_EPOCH:$EL9_VERSION-$EL9_BASE_RELEASE"
+    EL9_HOTFIX_EVR="$EL9_EPOCH:$EL9_VERSION-$EL9_HOTFIX_RELEASE"
+}
+
 centos8_nginx_release_vars() {
     CENTOS8_EPOCH='1'
 

@@ -70,6 +70,31 @@ legacy_rpm_security_patches() {
         CVE-2026-125283-legacy-module.patch
 }
 
+el9_security_patches() {
+    case "$1" in
+        1.20.1)
+            legacy_rpm_security_patches
+            ;;
+        1.22.1|1.24.0)
+            printf '%s\n' \
+                CVE-2026-123633.patch \
+                CVE-2026-123640.patch \
+                CVE-2026-118899.patch \
+                CVE-2026-123634.patch \
+                CVE-2026-123007.patch \
+                CVE-2026-113425.patch \
+                CVE-2026-125283-legacy-module.patch
+            ;;
+        1.26.3)
+            debian_security_patches 13
+            ;;
+        *)
+            echo "unsupported EL9 NGINX version: $1" >&2
+            return 1
+            ;;
+    esac
+}
+
 security_cves_from_patches() {
     local patch cve seen=' '
     for patch in "$@"; do
