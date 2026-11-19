@@ -15,9 +15,11 @@ for release in 8 9 10 11 12 13; do
     case "$HOTFIX_VERSION" in
         *:*) echo "FAIL: epoch must not be introduced: $HOTFIX_VERSION" >&2; exit 1 ;;
     esac
-    previous_hotfix_version=${HOTFIX_VERSION%2}1
+    hp1_version=${HOTFIX_VERSION%3}1
+    hp2_version=${HOTFIX_VERSION%3}2
     compare "$BASE_VERSION" lt "$HOTFIX_VERSION"
-    compare "$previous_hotfix_version" lt "$HOTFIX_VERSION"
+    compare "$hp1_version" lt "$hp2_version"
+    compare "$hp2_version" lt "$HOTFIX_VERSION"
     compare "$HOTFIX_VERSION" lt "$DEBIAN_POINT_VERSION"
     compare "$HOTFIX_VERSION" lt "$DEBIAN_NEXT_VERSION"
 done

@@ -8,6 +8,7 @@ ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
 . "$ROOT/scripts/configure-legacy-apt.sh"
 . "$ROOT/scripts/patch-helpers.sh"
+. "$ROOT/scripts/security-changelog.sh"
 . /etc/os-release
 nginx_release_vars "$VERSION_ID"
 export DEBIAN_FRONTEND=noninteractive
@@ -37,63 +38,7 @@ if [ "$VERSION_ID" -le 10 ]; then
     quilt refresh -p ab --no-timestamps --no-index
 fi
 
-case "$VERSION_ID" in
-    8)
-        patches=(
-            CVE-2026-123634.patch
-            CVE-2026-113425.patch
-            CVE-2026-125283-legacy-core.patch
-        )
-        ;;
-    9)
-        patches=(
-            CVE-2026-123633.patch
-            CVE-2026-123634.patch
-            CVE-2026-123007.patch
-            CVE-2026-113425.patch
-            CVE-2026-125283-legacy-core.patch
-        )
-        ;;
-    10|11)
-        patches=(
-            CVE-2026-123633.patch
-            CVE-2026-123640.patch
-            CVE-2026-118899-legacy.patch
-            CVE-2026-123634.patch
-            CVE-2026-123007.patch
-            CVE-2026-113425.patch
-            CVE-2026-125283-legacy-module.patch
-        )
-        ;;
-    12)
-        patches=(
-            CVE-2023-44487.patch
-            CVE-2026-15176.patch
-            CVE-2026-93479.patch
-            CVE-2026-97205.patch
-            CVE-2026-123633.patch
-            CVE-2026-123640.patch
-            CVE-2026-118899.patch
-            CVE-2026-123634.patch
-            CVE-2026-123007-bookworm.patch
-            CVE-2026-113425.patch
-            CVE-2026-125283.patch
-        )
-        ;;
-    13)
-        patches=(
-            CVE-2026-123633.patch
-            CVE-2026-123640.patch
-            CVE-2026-120967.patch
-            CVE-2026-118899.patch
-            CVE-2026-123634.patch
-            CVE-2026-123007.patch
-            CVE-2026-113425.patch
-            CVE-2026-121810.patch
-            CVE-2026-125283.patch
-        )
-        ;;
-esac
+mapfile -t patches < <(debian_security_patches "$VERSION_ID")
 
 for patch in "${patches[@]}"; do
     source_patch="$PATCH_SOURCE/$patch"
@@ -195,11 +140,25 @@ fi
 
 DEBEMAIL='packages@hosted-power.com' DEBFULLNAME='Hosted Power' \
     dch --newversion "$HOTFIX_VERSION" --distribution "$RELEASE_CODENAME" --force-distribution \
-    'Backport Debian fixes for the November 2026 NGINX security vulnerabilities.' >/dev/null 2>&1
+    'Backport NGINX security fixes.' >/dev/null 2>&1
+changelog_lines=$(mktemp)
+security_changelog_lines debian "${patches[@]}" > "$changelog_lines"
+awk -v insert="$changelog_lines" '
+    !done && $0 == "  * Backport NGINX security fixes." {
+        while ((getline line < insert) > 0) print line
+        close(insert)
+        done=1
+        next
+    }
+    { print }
+' debian/changelog > debian/changelog.new
+mv debian/changelog.new debian/changelog
+rm -f "$changelog_lines"
 sed -i '0,/^ -- Hosted Power <packages@hosted-power.com>  /s#^ -- Hosted Power <packages@hosted-power.com>  .*# -- Hosted Power <packages@hosted-power.com>  Wed, 18 Nov 2026 00:00:00 +0000#' \
     debian/changelog
 grep -qF ' -- Hosted Power <packages@hosted-power.com>  Wed, 18 Nov 2026 00:00:00 +0000' \
     debian/changelog
+security_changelog_assert_cves debian/changelog "${patches[@]}"
 
 mk-build-deps -i -r -t 'apt-get -y -qq --no-install-recommends' debian/control >/dev/null
 id builder >/dev/null 2>&1 || useradd --system --no-create-home builder

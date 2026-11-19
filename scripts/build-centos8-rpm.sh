@@ -10,6 +10,7 @@ ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
 . "$HERE/configure-centos8-vault.sh"
 . "$HERE/patch-helpers.sh"
+. "$HERE/security-changelog.sh"
 centos8_nginx_release_vars "$STREAM"
 
 . /etc/os-release
@@ -29,8 +30,8 @@ mkdir -p "$TOP" "$OUT"
 rpm -ivh --define "_topdir $TOP" "$SRC/$CENTOS8_SOURCE_FILE" >/dev/null
 
 spec="$TOP/SPECS/nginx.spec"
-sed -i '/^Release:/ s/$/.0.1.hp2/' "$spec"
-grep -q '^Release:.*\.0\.1\.hp2$' "$spec"
+sed -i '/^Release:/ s/$/.0.1.hp3/' "$spec"
+grep -q '^Release:.*\.0\.1\.hp3$' "$spec"
 
 patch_files=()
 if [ "$STREAM" = 1.14 ] || [ "$STREAM" = 1.16 ]; then
@@ -39,15 +40,7 @@ if [ "$STREAM" = 1.14 ] || [ "$STREAM" = 1.16 ]; then
     patch_files+=("$prerequisite")
 fi
 
-security_patches=(
-    CVE-2026-123633.patch
-    CVE-2026-123640.patch
-    CVE-2026-118899-legacy.patch
-    CVE-2026-123634.patch
-    CVE-2026-123007.patch
-    CVE-2026-113425.patch
-    CVE-2026-125283-legacy-module.patch
-)
+mapfile -t security_patches < <(legacy_rpm_security_patches)
 
 for patch_name in "${security_patches[@]}"; do
     cp "$ROOT/patches/$patch_name" "$TOP/SOURCES/$patch_name"
@@ -168,13 +161,30 @@ awk -v insert="$prep_block" '
 ' "$spec" > "$spec.new"
 mv "$spec.new" "$spec"
 
-sed -i "/^%changelog/a * Wed Nov 18 2026 Hosted Power <packages@hosted-power.com> - 1:$CENTOS8_VERSION-$CENTOS8_HOTFIX_RELEASE\n- Backport fixes for the November 2026 NGINX security vulnerabilities.\n" "$spec"
+changelog_entry=$(mktemp)
+{
+    printf '* Wed Nov 18 2026 Hosted Power <packages@hosted-power.com> - 1:%s-%s\n' \
+        "$CENTOS8_VERSION" "$CENTOS8_HOTFIX_RELEASE"
+    security_changelog_lines rpm "${security_patches[@]}"
+    printf '\n'
+} > "$changelog_entry"
+awk -v insert="$changelog_entry" '
+    { print }
+    !done && /^%changelog$/ {
+        while ((getline line < insert) > 0) print line
+        close(insert)
+        done=1
+    }
+' "$spec" > "$spec.new"
+mv "$spec.new" "$spec"
+rm -f "$changelog_entry"
+security_changelog_assert_cves "$spec" "${security_patches[@]}"
 
 dnf -q -y builddep "$SRC/$CENTOS8_SOURCE_FILE" >/dev/null
 useradd --system --no-create-home builder
 chown -R builder "$TOP" "$OUT"
 su -s /bin/bash builder -c \
-    "HOME=/build rpmbuild --define '_topdir $TOP' --define 'dist $CENTOS8_DIST' --define 'modularitylabel $CENTOS8_MODULARITY_LABEL' -bb '$spec'" \
+    "HOME=/build SOURCE_DATE_EPOCH=1795046400 rpmbuild --define '_topdir $TOP' --define '_buildhost packages.hosted-power.com' --define 'use_source_date_epoch_as_buildtime 1' --define 'clamp_mtime_to_source_date_epoch 1' --define 'dist $CENTOS8_DIST' --define 'modularitylabel $CENTOS8_MODULARITY_LABEL' -bb '$spec'" \
     > "$OUT/build-centos8-$STREAM.log" 2>&1 || {
         tail -120 "$OUT/build-centos8-$STREAM.log"
         exit 1

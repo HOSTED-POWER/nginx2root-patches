@@ -8,6 +8,7 @@ ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
 . "$ROOT/scripts/configure-centos7-vault.sh"
 . "$ROOT/scripts/patch-helpers.sh"
+. "$ROOT/scripts/security-changelog.sh"
 
 . /etc/os-release
 [ "$ID" = centos ] && [ "$VERSION_ID" = 7 ] || {
@@ -16,7 +17,7 @@ ROOT=$(dirname "$HERE")
 }
 
 configure_centos7_vault
-yum -q -y install ca-certificates cpio curl epel-rpm-macros rpm-build \
+yum -q -y install ca-certificates cpio curl epel-rpm-macros libfaketime rpm-build \
     rpm-python rpmdevtools yum-utils >/dev/null
 "$HERE/test-rpm-version-order.sh"
 
@@ -26,18 +27,10 @@ mkdir -p "$TOP" "$OUT"
 rpm -ivh --define "_topdir $TOP" "$SRC/$CENTOS7_EPEL_SOURCE_FILE" >/dev/null
 
 spec="$TOP/SPECS/nginx.spec"
-sed -i 's/^Release:[[:space:]]*10%{?dist}$/Release:           10%{?dist}.0.1.hp2/' "$spec"
-grep -q '^Release:[[:space:]]*10%{?dist}.0.1.hp2$' "$spec"
+sed -i 's/^Release:[[:space:]]*10%{?dist}$/Release:           10%{?dist}.0.1.hp3/' "$spec"
+grep -q '^Release:[[:space:]]*10%{?dist}.0.1.hp3$' "$spec"
 
-patches=(
-    CVE-2026-123633.patch
-    CVE-2026-123640.patch
-    CVE-2026-118899-legacy.patch
-    CVE-2026-123634.patch
-    CVE-2026-123007.patch
-    CVE-2026-113425.patch
-    CVE-2026-125283-legacy-module.patch
-)
+mapfile -t patches < <(legacy_rpm_security_patches)
 patch_number=4
 for patch in "${patches[@]}"; do
     cp "$ROOT/patches/$patch" "$TOP/SOURCES/$patch"
@@ -68,13 +61,30 @@ cp "$ROOT/scripts/gpgverify-rpm.sh" "$TOP/SOURCES/gpgverify-rpm.sh"
 chmod 0755 "$TOP/SOURCES/gpgverify-rpm.sh"
 sed -i '/^Source210:/a Source211:         test-patches.sh' "$spec"
 sed -i '/^%build$/i %check\n%{SOURCE211} . 11 1 0 1 1 2 0 0 0\n' "$spec"
-sed -i '/^%changelog$/a * Thu Nov 19 2026 Hosted Power <packages@hosted-power.com> - 1:1.20.1-10.el7.0.1.hp2\n- Complete backports for the November 2026 NGINX security vulnerabilities.\n' "$spec"
+changelog_entry=$(mktemp)
+{
+    printf '* Thu Nov 19 2026 Hosted Power <packages@hosted-power.com> - 1:%s-%s\n' \
+        "$CENTOS7_EPEL_VERSION" "$CENTOS7_EPEL_HOTFIX_RELEASE"
+    security_changelog_lines rpm "${patches[@]}"
+    printf '\n'
+} > "$changelog_entry"
+awk -v insert="$changelog_entry" '
+    { print }
+    !done && /^%changelog$/ {
+        while ((getline line < insert) > 0) print line
+        close(insert)
+        done=1
+    }
+' "$spec" > "$spec.new"
+mv "$spec.new" "$spec"
+rm -f "$changelog_entry"
+security_changelog_assert_cves "$spec" "${patches[@]}"
 
 yum-builddep -q -y "$SRC/$CENTOS7_EPEL_SOURCE_FILE" >/dev/null
 useradd --system --no-create-home builder
 chown -R builder "$TOP" "$OUT"
 su -s /bin/bash builder -c \
-    "HOME=/build rpmbuild --define '_topdir $TOP' --define 'gpgverify $TOP/SOURCES/gpgverify-rpm.sh' -bb '$spec'" \
+    "HOME=/build faketime -f '2026-11-19 00:00:00' rpmbuild --define '_topdir $TOP' --define '_buildhost packages.hosted-power.com' --define 'gpgverify $TOP/SOURCES/gpgverify-rpm.sh' -bb '$spec'" \
     > "$OUT/build-centos7.log" 2>&1 || {
         tail -100 "$OUT/build-centos7.log"
         exit 1

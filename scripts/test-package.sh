@@ -6,8 +6,10 @@ HERE=$(dirname "$(realpath "$0")")
 ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
 . "$ROOT/scripts/configure-legacy-apt.sh"
+. "$ROOT/scripts/security-changelog.sh"
 . /etc/os-release
 nginx_release_vars "$VERSION_ID"
+mapfile -t security_patches < <(debian_security_patches "$VERSION_ID")
 export DEBIAN_FRONTEND=noninteractive
 
 configure_legacy_apt "$VERSION_ID" "$RELEASE_CODENAME"
@@ -34,10 +36,15 @@ fi
     exit 1
 }
 installed_before=$(dpkg-query -W -f='${Version}' "$nginx_binary_package")
-[ "$installed_before" = "$BASE_VERSION" ] || {
-    echo "expected Debian NGINX $BASE_VERSION before upgrade, found $installed_before" >&2
-    exit 1
-}
+vendor_supersedes=0
+if [ "$installed_before" = "$DEBIAN_NEXT_VERSION" ]; then
+    vendor_supersedes=1
+else
+    [ "$installed_before" = "$BASE_VERSION" ] || {
+        echo "expected Debian NGINX $BASE_VERSION before upgrade, found $installed_before" >&2
+        exit 1
+    }
+fi
 abi_before=$(dpkg-query -W -f='${Provides}' "$nginx_binary_package")
 if [ "$VERSION_ID" = 8 ]; then
     modules_before=''
@@ -56,13 +63,29 @@ if [ "$VERSION_ID" -ge 9 ]; then
     mail_deb="$OUT/libnginx-mod-mail_${HOTFIX_VERSION}_amd64.deb"
     [ -f "$mail_deb" ]
 fi
-"$ROOT/install.sh" "$OUT"
+if [ "$vendor_supersedes" -eq 1 ]; then
+    selected_debs=()
+    for deb in "$OUT"/*.deb; do
+        package_name=$(dpkg-deb -f "$deb" Package)
+        if [ "$(dpkg-query -W -f='${db:Status-Status}' "$package_name" 2>/dev/null || true)" = installed ]; then
+            selected_debs+=("$deb")
+        fi
+    done
+    apt-get install -y --allow-downgrades --no-install-recommends "${selected_debs[@]}"
+else
+    "$ROOT/install.sh" "$OUT"
+fi
 
 [ "$(dpkg-query -W -f='${Version}' nginx-common)" = "$HOTFIX_VERSION" ]
 if [ "$VERSION_ID" -ge 9 ]; then
     [ "$(dpkg-query -W -f='${Version}' libnginx-mod-mail)" = "$HOTFIX_VERSION" ]
 fi
 [ "$(dpkg-query -W -f='${Version}' "$nginx_binary_package")" = "$HOTFIX_VERSION" ]
+installed_changelog="/usr/share/doc/$nginx_binary_package/changelog.Debian.gz"
+[ -f "$installed_changelog" ]
+changelog_text=$(mktemp)
+gzip -dc "$installed_changelog" > "$changelog_text"
+security_changelog_assert_cves "$changelog_text" "${security_patches[@]}"
 [ "$(dpkg-query -W -f='${Provides}' "$nginx_binary_package")" = "$abi_before" ] || {
     echo "NGINX module ABI changed" >&2
     exit 1
@@ -186,4 +209,4 @@ if [ "$VERSION_ID" -ge 9 ]; then
 else
     protocol=HTTP/1.1
 fi
-echo "PASS: upgraded $BASE_VERSION -> $HOTFIX_VERSION with $nginx_binary_package ABI $abi_before, two fresh workers, proxying, mail, Lua, echo, stream and working $protocol"
+echo "PASS: installed $installed_before -> $HOTFIX_VERSION with $nginx_binary_package ABI $abi_before, two fresh workers, proxying, mail, Lua, echo, stream and working $protocol"

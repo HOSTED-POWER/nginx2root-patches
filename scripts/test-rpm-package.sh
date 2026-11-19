@@ -7,6 +7,8 @@ HERE=$(dirname "$(realpath "$0")")
 ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
 . "$HERE/configure-centos7-vault.sh"
+. "$HERE/security-changelog.sh"
+mapfile -t security_patches < <(legacy_rpm_security_patches)
 
 . /etc/os-release
 [ "$ID" = centos ] && [ "$VERSION_ID" = 7 ] || {
@@ -50,6 +52,11 @@ for package_name in "${packages_after[@]}"; do
         exit 1
     }
 done
+rpm_changelog=$(mktemp)
+rpm -q --changelog nginx > "$rpm_changelog"
+security_changelog_assert_cves "$rpm_changelog" "${security_patches[@]}"
+[ "$(rpm -q --qf '%{BUILDTIME} %{BUILDHOST}' nginx)" = \
+    '1795046400 packages.hosted-power.com' ]
 
 abi_after=$(rpm -q --provides nginx | awk '/^nginx\(abi\)/ { print; exit }')
 [ "$abi_before" = "$abi_after" ] || {

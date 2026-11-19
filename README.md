@@ -15,10 +15,10 @@ your distribution ships its own update later, it takes over automatically throug
 normal package upgrades.
 
 **Current status (19 November 2026):** the public
-[`v1.3.1` release](https://github.com/HOSTED-POWER/nginx2root-patches/releases/tag/v1.3.1)
+[`v1.3.2` release](https://github.com/HOSTED-POWER/nginx2root-patches/releases/tag/v1.3.2)
 contains all 11 platform bundles plus `SHA256SUMS`. The signed Hosted Power APT
-repository also carries the complete Debian 12 and 13 `hp2` package sets. Debian
-12 currently selects `hp2`. Debian 13 now selects Debian's newer
+repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
+12 currently selects `hp3`. Debian 13 now selects Debian's newer
 `1.26.3-3+deb13u11` automatically; inspection of that source package confirms
 that it contains all nine applicable NGINX 1.30.7 security patches listed here.
 
@@ -40,18 +40,22 @@ NGINX), re-enable HTTP/2 (`listen 443 ssl http2;` on Debian 9–12 and CentOS 7/
 
 ## Packages: Debian 8 through 13 and CentOS 7 through 8
 
-The `v1.3.1` release contains complete x86-64 package sets. Its `hp2` package
-revision upgrades the earlier `hp1` builds while remaining below the next
-distribution update:
+The `v1.3.2` release contains complete x86-64 package sets. Its `hp3` package
+revision upgrades the earlier builds while remaining below the next distribution
+update. Every package changelog names each included CVE explicitly, so standard
+installed-package changelog checks, `rpm -q --changelog`, and CVE audit tools
+recognize the fixes. On Debian, inspect the installed evidence directly with
+`zgrep CVE-2026 /usr/share/doc/nginx/changelog.Debian.gz`; `apt changelog`
+consults repository metadata and is not reliable for third-party packages:
 
 | Debian | Base package | Hotfix package | Included fixes |
 |---|---|---|---|
-| 8 Jessie | `1.6.2-5+deb8u10` | `1.6.2-5+deb8u10.1~hp2` | CVE-2026-113425, CVE-2026-123634, CVE-2026-125283 |
-| 9 Stretch | `1.10.3-1+deb9u10` | `1.10.3-1+deb9u10.1~hp2` | CVE-2026-113425, CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-125283 |
-| 10 Buster | `1.14.2-2+deb10u9` | `1.14.2-2+deb10u9.1~hp2` | the Stretch fixes plus CVE-2026-118899 and CVE-2026-123640 |
-| 11 Bullseye | `1.18.0-6.1+deb11u9` | `1.18.0-6.1+deb11u9.1~hp2` | the same seven fixes as Buster |
-| 12 Bookworm | `1.22.1-9+deb12u10` | `1.22.1-9+deb12u10.1~hp2` | the same seven, plus CVE-2026-15176, CVE-2026-93479, CVE-2026-97205 and additional CVE-2023-44487 hardening |
-| 13 Trixie | `1.26.3-3+deb13u10` | `1.26.3-3+deb13u10.1~hp2` | all nine applicable NGINX 1.30.7 fixes, including CVE-2026-120967 and CVE-2026-121810 |
+| 8 Jessie | `1.6.2-5+deb8u10` | `1.6.2-5+deb8u10.1~hp3` | CVE-2026-113425, CVE-2026-123634, CVE-2026-125283 |
+| 9 Stretch | `1.10.3-1+deb9u10` | `1.10.3-1+deb9u10.1~hp3` | CVE-2026-113425, CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-125283 |
+| 10 Buster | `1.14.2-2+deb10u9` | `1.14.2-2+deb10u9.1~hp3` | the Stretch fixes plus CVE-2026-118899 and CVE-2026-123640 |
+| 11 Bullseye | `1.18.0-6.1+deb11u9` | `1.18.0-6.1+deb11u9.1~hp3` | the same seven fixes as Buster |
+| 12 Bookworm | `1.22.1-9+deb12u10` | `1.22.1-9+deb12u10.1~hp3` | the same seven, plus CVE-2026-15176, CVE-2026-93479, CVE-2026-97205 and additional CVE-2023-44487 hardening |
+| 13 Trixie | `1.26.3-3+deb13u10` | `1.26.3-3+deb13u10.1~hp3` | all nine applicable NGINX 1.30.7 fixes, including CVE-2026-120967 and CVE-2026-121810 |
 
 Debian's official Trixie `1.26.3-3+deb13u11` package now supersedes the Trixie
 hotfix through normal version ordering. Its source has the same nine relevant
@@ -68,11 +72,11 @@ source tree is checked for the security-sensitive conditions before it is built.
 
 | Distribution | Base package | Hotfix package | Included fixes |
 |---|---|---|---|
-| CentOS 7 archived EPEL | `1:1.20.1-10.el7` | `1:1.20.1-10.el7.0.1.hp2` | seven applicable fixes: CVE-2026-113425, CVE-2026-118899, CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-123640, CVE-2026-125283 |
-| CentOS 8 AppStream 1.14 (original/default) | `1:1.14.1-9.module_el8.0.0+184+e34fea82` | `1:1.14.1-9.module_el8.0.0+184+e34fea82.0.1.hp2` | the same seven applicable fixes |
-| CentOS 8 AppStream 1.16 | `1:1.16.1-2.module_el8.4.0+820+127618ce.1` | `1:1.16.1-2.module_el8.4.0+820+127618ce.1.0.1.hp2` | the same seven applicable fixes |
-| CentOS 8 AppStream 1.18 | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1` | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1.0.1.hp2` | the same seven applicable fixes |
-| CentOS 8 AppStream 1.20 | `1:1.20.0-2.module_el8.5.0+899+43b718f6` | `1:1.20.0-2.module_el8.5.0+899+43b718f6.0.1.hp2` | the same seven applicable fixes |
+| CentOS 7 archived EPEL | `1:1.20.1-10.el7` | `1:1.20.1-10.el7.0.1.hp3` | seven applicable fixes: CVE-2026-113425, CVE-2026-118899, CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-123640, CVE-2026-125283 |
+| CentOS 8 AppStream 1.14 (original/default) | `1:1.14.1-9.module_el8.0.0+184+e34fea82` | `1:1.14.1-9.module_el8.0.0+184+e34fea82.0.1.hp3` | the same seven applicable fixes |
+| CentOS 8 AppStream 1.16 | `1:1.16.1-2.module_el8.4.0+820+127618ce.1` | `1:1.16.1-2.module_el8.4.0+820+127618ce.1.0.1.hp3` | the same seven applicable fixes |
+| CentOS 8 AppStream 1.18 | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1` | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1.0.1.hp3` | the same seven applicable fixes |
+| CentOS 8 AppStream 1.20 | `1:1.20.0-2.module_el8.5.0+899+43b718f6` | `1:1.20.0-2.module_el8.5.0+899+43b718f6.0.1.hp3` | the same seven applicable fixes |
 
 The CentOS 7 package set targets only NGINX installed from the archived EPEL 7
 package family. The installer rejects nginx.org, control-panel, and other package
@@ -110,8 +114,8 @@ Download the bundle for the matching Debian or CentOS package family from
 
 ```bash
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.3.1-debian12-amd64.tar.xz
-cd nginx2root-patches-v1.3.1-debian12-amd64
+tar -xJf nginx2root-patches-v1.3.2-debian12-amd64.tar.xz
+cd nginx2root-patches-v1.3.2-debian12-amd64
 sha256sum -c SHA256SUMS
 sudo ./install.sh
 ```
@@ -143,14 +147,14 @@ For CentOS 7 with the archived EPEL package family:
 
 ```bash
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.3.1-centos7-epel-x86_64.tar.xz
-cd nginx2root-patches-v1.3.1-centos7-epel-x86_64
+tar -xJf nginx2root-patches-v1.3.2-centos7-epel-x86_64.tar.xz
+cd nginx2root-patches-v1.3.2-centos7-epel-x86_64
 sha256sum -c SHA256SUMS
 sudo ./install-rpm.sh
 ```
 
 The RPM installer upgrades only already-installed NGINX packages from the bundle,
-accepts either the vendor base or earlier `hp1` build, checks configuration before
+accepts the vendor base or either earlier `hp1`/`hp2` build, checks configuration before
 and after, and verifies that an active service stays active.
 
 For CentOS Linux 8, first identify the installed AppStream family:
@@ -164,8 +168,8 @@ bundle. For example, for the original/default 1.14 line:
 
 ```bash
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.3.1-centos8-appstream-1.14-x86_64.tar.xz
-cd nginx2root-patches-v1.3.1-centos8-appstream-1.14-x86_64
+tar -xJf nginx2root-patches-v1.3.2-centos8-appstream-1.14-x86_64.tar.xz
+cd nginx2root-patches-v1.3.2-centos8-appstream-1.14-x86_64
 sha256sum -c SHA256SUMS
 sudo ./install-centos8-rpm.sh
 ```
@@ -184,7 +188,7 @@ distribution base < Hosted Power hotfix < distribution point update
 For example:
 
 ```text
-1.22.1-9+deb12u10 < 1.22.1-9+deb12u10.1~hp1 < 1.22.1-9+deb12u10.1~hp2 < 1.22.1-9+deb12u10.1
+1.22.1-9+deb12u10 < ...~hp1 < ...~hp2 < ...~hp3 < 1.22.1-9+deb12u10.1
 ```
 
 No pin, hold, new epoch, diversion, or package-name change is used. A higher
@@ -221,7 +225,7 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 
 ## Scope
 
-- Architectures in `v1.3.1`: Debian amd64 and CentOS x86-64 only.
+- Architectures in `v1.3.2`: Debian amd64 and CentOS x86-64 only.
 - Debian 8, 9, 10, and 11 and CentOS 7 and 8 are EOL releases. Their NGINX
   hotfixes do not provide security support for the rest of the operating system.
 - Debian 8 through 11 source provenance is

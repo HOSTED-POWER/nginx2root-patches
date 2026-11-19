@@ -34,6 +34,7 @@ done
 rpm_output="$OUT/centos7"
 mkdir -p "$rpm_output"
 docker run --rm \
+    --hostname packages.hosted-power.com \
     -v "$ROOT:/project:ro" \
     -v "$SOURCES:/sources:ro" \
     -v "$rpm_output:/out" \
@@ -49,6 +50,7 @@ for stream in 1.14 1.16 1.18 1.20; do
     rpm_output="$OUT/centos8/$stream"
     mkdir -p "$rpm_output"
     docker run --rm \
+        --hostname packages.hosted-power.com \
         -v "$ROOT:/project:ro" \
         -v "$SOURCES:/sources:ro" \
         -v "$rpm_output:/out" \
