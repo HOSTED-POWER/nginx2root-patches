@@ -5,13 +5,13 @@ set -euo pipefail
 ROOT=$(dirname "$(realpath "$0")")
 OUT=$(realpath -m "${OUT:-$ROOT/out}")
 DEST=$(realpath -m "${DEST:-$ROOT/release}")
-VERSION=${VERSION:-v1.0.0}
+VERSION=${VERSION:-v1.1.0}
 
 mkdir -p "$DEST"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-for release in 12 13; do
+for release in 9 10 11 12 13; do
     source_dir="$OUT/debian$release"
     bundle="nginx2root-patches-$VERSION-debian$release-amd64"
     bundle_dir="$work/$bundle"

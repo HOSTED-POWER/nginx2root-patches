@@ -15,7 +15,7 @@ mkdir -p "$SOURCES" "$OUT"
 "$ROOT/scripts/fetch-sources.sh" "$SOURCES"
 "$ROOT/scripts/test-version-order.sh"
 
-for release in 12 13; do
+for release in 9 10 11 12 13; do
     output="$OUT/debian$release"
     mkdir -p "$output"
     docker run --rm \
@@ -31,4 +31,4 @@ for release in 12 13; do
         /project/scripts/test-package.sh /out
 done
 
-echo "PASS: Debian 12 and 13 packages built and tested under $OUT"
+echo "PASS: Debian 9 through 13 packages built and tested under $OUT"

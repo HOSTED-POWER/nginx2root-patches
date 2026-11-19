@@ -13,18 +13,22 @@ Debian's expected update, so a normal `apt upgrade` replaces them automatically.
 
 *Debian Security Tracker on 19 November 2026. Click the screenshot for the live status.*
 
-## First release: Debian 12 and 13
+## Packages: Debian 9 through 13
 
-The `v1.0.0` release contains complete amd64 package sets:
+The `v1.1.0` release contains complete amd64 package sets:
 
 | Debian | Base package | Hotfix package | Included fixes |
 |---|---|---|---|
+| 9 Stretch | `1.10.3-1+deb9u10` | `1.10.3-1+deb9u10.1~hp1` | CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-113425 |
+| 10 Buster | `1.14.2-2+deb10u9` | `1.14.2-2+deb10u9.1~hp1` | the same four |
+| 11 Bullseye | `1.18.0-6.1+deb11u9` | `1.18.0-6.1+deb11u9.1~hp1` | the same four |
 | 12 Bookworm | `1.22.1-9+deb12u10` | `1.22.1-9+deb12u10.1~hp1` | CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-113425 |
 | 13 Trixie | `1.26.3-3+deb13u10` | `1.26.3-3+deb13u10.1~hp1` | the same four, plus CVE-2026-121810 (HTTP/3) |
 
-Debian 9 through 11 are being evaluated separately. They will only be published
-where the vulnerability applies and the backport can be built and tested against
-that release's actual NGINX package and module ABI.
+Debian 9 through 11 use the current source packages from Freexian Extended LTS.
+Their older NGINX trees require small context adaptations and, for Debian 9 and
+10, the upstream SMTP duplicate-resolution prerequisite from 2019. Every adapted
+source tree is checked for the security-sensitive conditions before it is built.
 
 ## Download and install
 
@@ -33,17 +37,18 @@ Download the bundle for the exact Debian major version from
 
 ```bash
 sha256sum -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.0.0-debian12-amd64.tar.xz
-cd nginx2root-patches-v1.0.0-debian12-amd64
+tar -xJf nginx2root-patches-v1.1.0-debian12-amd64.tar.xz
+cd nginx2root-patches-v1.1.0-debian12-amd64
 sha256sum -c SHA256SUMS
 sudo ./install.sh
 ```
 
-Use the Debian 13 bundle on Trixie. The installer checks the Debian release and
-architecture, validates the existing NGINX configuration, and upgrades exactly
-the matching packages already installed on the host. It does not add unused
-modules or metapackages. It validates NGINX again afterward and, if the service
-was active before the upgrade, confirms that it remains active.
+Choose the bundle matching the host's exact Debian major release. The installer
+checks the Debian release and architecture, validates the existing NGINX
+configuration, and upgrades exactly the matching packages already installed on
+the host. It does not add unused modules or metapackages. It validates NGINX
+again afterward and, if the service was active before the upgrade, confirms that
+it remains active.
 
 The bundle contains matching packages for every module and metapackage built from
 Debian's NGINX source package. This matters for `libnginx-mod-mail`, which carries
@@ -92,19 +97,22 @@ The build:
 1. downloads exact Debian source archives and verifies pinned SHA-256 hashes;
 2. applies Debian's existing quilt series, then the applicable reviewed security patches;
 3. checks the security-sensitive source conditions after patching;
-4. builds unprivileged inside clean `debian:12` and `debian:13` containers;
+4. builds unprivileged inside clean matching `debian:9` through `debian:13` containers;
 5. upgrades a stock container, preserves the NGINX module ABI, runs `nginx -t`,
    and serves an HTTP/2 smoke request;
 6. confirms the hotfix sorts above the vulnerable package and below Debian's update.
 
-The committed patches are copied from Debian's fixed `nginx 1.30.6-4` source
-package and retain their upstream commit links and authorship. Bookworm needs one
-small context adaptation in `scripts/build-deb.sh`; the resulting source semantics
-are checked by `scripts/test-patches.sh`.
+The committed security patches are copied from Debian's fixed `nginx 1.30.6-4`
+source package and retain their upstream commit links and authorship. Older
+releases need narrowly scoped context adaptations in `scripts/build-deb.sh`; the
+resulting source semantics are checked by `scripts/test-patches.sh`.
 
 ## Scope
 
-- Architectures in `v1.0.0`: amd64 only.
+- Architectures in `v1.1.0`: amd64 only.
+- Debian 9, 10, and 11 are EOL Debian releases; their source provenance is
+  Freexian Extended LTS, and users must separately ensure their full operating
+  system remains supported and patched.
 - These packages preserve Debian's configuration paths, maintainer scripts,
   compile options, and dynamic-module ABI.
 - They do not make an exposed NGINX configuration safe by themselves unless the
@@ -119,3 +127,4 @@ are checked by `scripts/test-patches.sh`.
 - [Debian tracker: CVE-2026-113425](https://security-tracker.debian.org/tracker/CVE-2026-113425)
 - [Debian tracker: CVE-2026-121810](https://security-tracker.debian.org/tracker/CVE-2026-121810)
 - [Debian fixed source package](https://tracker.debian.org/pkg/nginx)
+- [Freexian Extended LTS repository](https://deb.freexian.com/extended-lts/)

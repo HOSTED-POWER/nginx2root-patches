@@ -1,0 +1,102 @@
+From abe660636c93315b4acb8531b83aec8d309d2eca Mon Sep 17 00:00:00 2001
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Thu, 1 Aug 2019 13:50:07 +0300
+Subject: [PATCH] Mail: fixed duplicate resolving.
+
+When using SMTP with SSL and resolver, read events might be enabled
+during address resolving, leading to duplicate ngx_mail_ssl_handshake_handler()
+calls if something arrives from the client, and duplicate session
+initialization - including starting another resolving.  This can lead
+to a segmentation fault if the session is closed after first resolving
+finished.  Fix is to block read events while resolving.
+
+Reported by Robert Norris,
+http://mailman.nginx.org/pipermail/nginx/2019-July/058204.html.
+---
+ src/mail/ngx_mail_smtp_handler.c | 43 ++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
+
+diff --git a/src/mail/ngx_mail_smtp_handler.c b/src/mail/ngx_mail_smtp_handler.c
+index 939fb1a51..f1017e0d8 100644
+--- a/src/mail/ngx_mail_smtp_handler.c
++++ b/src/mail/ngx_mail_smtp_handler.c
+@@ -15,6 +15,7 @@
+ static void ngx_mail_smtp_resolve_addr_handler(ngx_resolver_ctx_t *ctx);
+ static void ngx_mail_smtp_resolve_name(ngx_event_t *rev);
+ static void ngx_mail_smtp_resolve_name_handler(ngx_resolver_ctx_t *ctx);
++static void ngx_mail_smtp_block_reading(ngx_event_t *rev);
+ static void ngx_mail_smtp_greeting(ngx_mail_session_t *s, ngx_connection_t *c);
+ static void ngx_mail_smtp_invalid_pipelining(ngx_event_t *rev);
+ static ngx_int_t ngx_mail_smtp_create_buffer(ngx_mail_session_t *s,
+@@ -88,6 +89,9 @@ ngx_mail_smtp_init_session(ngx_mail_session_t *s, ngx_connection_t *c)
+     ctx->data = s;
+     ctx->timeout = cscf->resolver_timeout;
+ 
++    s->resolver_ctx = ctx;
++    c->read->handler = ngx_mail_smtp_block_reading;
++
+     if (ngx_resolve_addr(ctx) != NGX_OK) {
+         ngx_mail_close_connection(c);
+     }
+@@ -169,6 +173,9 @@ ngx_mail_smtp_resolve_name(ngx_event_t *rev)
+     ctx->data = s;
+     ctx->timeout = cscf->resolver_timeout;
+ 
++    s->resolver_ctx = ctx;
++    c->read->handler = ngx_mail_smtp_block_reading;
++
+     if (ngx_resolve_name(ctx) != NGX_OK) {
+         ngx_mail_close_connection(c);
+     }
+@@ -238,6 +245,38 @@ found:
+ }
+ 
+ 
++static void
++ngx_mail_smtp_block_reading(ngx_event_t *rev)
++{
++    ngx_connection_t    *c;
++    ngx_mail_session_t  *s;
++    ngx_resolver_ctx_t  *ctx;
++
++    c = rev->data;
++    s = c->data;
++
++    ngx_log_debug0(NGX_LOG_DEBUG_MAIL, c->log, 0, "smtp reading blocked");
++
++    if (ngx_handle_read_event(rev, 0) != NGX_OK) {
++
++        if (s->resolver_ctx) {
++            ctx = s->resolver_ctx;
++
++            if (ctx->handler == ngx_mail_smtp_resolve_addr_handler) {
++                ngx_resolve_addr_done(ctx);
++
++            } else if (ctx->handler == ngx_mail_smtp_resolve_name_handler) {
++                ngx_resolve_name_done(ctx);
++            }
++
++            s->resolver_ctx = NULL;
++        }
++
++        ngx_mail_close_connection(c);
++    }
++}
++
++
+ static void
+ ngx_mail_smtp_greeting(ngx_mail_session_t *s, ngx_connection_t *c)
+ {
+@@ -258,6 +297,10 @@ ngx_mail_smtp_greeting(ngx_mail_session_t *s, ngx_connection_t *c)
+         ngx_mail_close_connection(c);
+     }
+ 
++    if (c->read->ready) {
++        ngx_post_event(c->read, &ngx_posted_events);
++    }
++
+     if (sscf->greeting_delay) {
+          c->read->handler = ngx_mail_smtp_invalid_pipelining;
+          return;
+-- 
+2.47.3

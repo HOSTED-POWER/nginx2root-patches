@@ -23,7 +23,6 @@ nginx_deb=$(find "$BUNDLE" -maxdepth 1 -type f -name 'nginx_*.deb' -print -quit)
 }
 
 nginx_version=$(dpkg-deb -f "$nginx_deb" Version)
-nginx_architecture=$(dpkg-deb -f "$nginx_deb" Architecture)
 case "$nginx_version" in
     *+deb"$VERSION_ID"u*~hp*) ;;
     *)
@@ -31,10 +30,6 @@ case "$nginx_version" in
         exit 1
         ;;
 esac
-[ "$nginx_architecture" = "$(dpkg --print-architecture)" ] || {
-    echo "ERROR: package architecture $nginx_architecture does not match $(dpkg --print-architecture)" >&2
-    exit 1
-}
 
 selected_debs=()
 selected_names=()
@@ -42,6 +37,14 @@ for deb in "${available_debs[@]}"; do
     package_name=$(dpkg-deb -f "$deb" Package)
     package_status=$(dpkg-query -W -f='${db:Status-Status}' "$package_name" 2>/dev/null || true)
     if [ "$package_status" = installed ]; then
+        package_architecture=$(dpkg-deb -f "$deb" Architecture)
+        case "$package_architecture" in
+            all|"$(dpkg --print-architecture)") ;;
+            *)
+                echo "ERROR: package $package_name architecture $package_architecture does not match $(dpkg --print-architecture)" >&2
+                exit 1
+                ;;
+        esac
         selected_debs+=("$deb")
         selected_names+=("$package_name")
     fi

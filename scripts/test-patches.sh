@@ -16,6 +16,8 @@ assert_contains src/http/v2/ngx_http_v2.c \
     'send_window = h2c->send_window' 'HTTP/2 queued-byte window calculation'
 assert_contains src/http/v2/ngx_http_v2.c \
     '+ ngx_http_v2_connection_private(h2c)->send_queued;' 'HTTP/2 queued-byte accounting'
+assert_contains src/http/v2/ngx_http_v2.c \
+    'h2c = &h2p->connection;' 'HTTP/2 private connection allocation'
 assert_contains src/http/v2/ngx_http_v2_filter_module.c \
     'ngx_http_v2_connection_private(h2c)->send_queued += frame_size;' 'HTTP/2 queue increment'
 assert_contains src/http/v2/ngx_http_v2_filter_module.c \
@@ -32,6 +34,15 @@ assert_contains src/core/ngx_resolver.c \
     'ngx_resolver_free_handler(ngx_resolver_ctx_t *ctx)' 'resolver deferred-free handler'
 assert_contains src/mail/ngx_mail_auth_http_module.c \
     'ngx_mail_auth_http_block_write(ngx_event_t *wev)' 'mail asynchronous write guard'
+assert_contains src/mail/ngx_mail_proxy_module.c \
+    's->connection->write->handler = ngx_mail_proxy_block_write;' 'mail proxy client write guard'
+assert_contains src/mail/ngx_mail_smtp_handler.c \
+    'ngx_mail_smtp_block_writing(ngx_event_t *wev)' 'SMTP resolver write guard'
+
+if [ "$RELEASE" -le 10 ]; then
+    assert_contains src/mail/ngx_mail_smtp_handler.c \
+        'ngx_mail_smtp_block_reading(ngx_event_t *rev)' 'SMTP resolver read prerequisite'
+fi
 
 if [ "$RELEASE" = 13 ]; then
     assert_contains src/event/quic/ngx_event_quic_streams.c \

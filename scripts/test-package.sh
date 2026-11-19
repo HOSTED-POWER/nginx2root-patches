@@ -1,14 +1,16 @@
 #!/bin/bash
-# test.sh <out-dir>   (run inside matching debian:12/13)
+# test-package.sh <out-dir>   (run inside matching Debian container)
 set -euo pipefail
 OUT=$(realpath "$1")
 HERE=$(dirname "$(realpath "$0")")
 ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
+. "$ROOT/scripts/configure-legacy-apt.sh"
 . /etc/os-release
 nginx_release_vars "$VERSION_ID"
 export DEBIAN_FRONTEND=noninteractive
 
+configure_legacy_apt "$VERSION_ID" "$RELEASE_CODENAME"
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends \
     libnginx-mod-http-echo libnginx-mod-http-lua libnginx-mod-mail nginx nghttp2-client >/dev/null
@@ -18,19 +20,33 @@ installed_before=$(dpkg-query -W -f='${Version}' nginx)
     echo "expected Debian nginx $BASE_VERSION before upgrade, found $installed_before" >&2
     exit 1
 }
-abi_before=$(dpkg-query -W -f='${Provides}' nginx)
+if [ "$VERSION_ID" -ge 12 ]; then
+    nginx_binary_package=nginx
+else
+    nginx_binary_package=$(
+        { dpkg-query -W -f='${binary:Package} ${db:Status-Status}\n' \
+            nginx-core nginx-full nginx-light nginx-extras 2>/dev/null || true; } \
+            | awk '$2 == "installed" { print $1 }' | head -1
+    )
+fi
+[ -n "$nginx_binary_package" ] || {
+    echo 'could not identify the installed NGINX binary package' >&2
+    exit 1
+}
+abi_before=$(dpkg-query -W -f='${Provides}' "$nginx_binary_package")
 modules_before=$(dpkg-query -W -f='${binary:Package}\n' 'libnginx-mod-*' | sort)
 
-nginx_deb="$OUT/nginx_${HOTFIX_VERSION}_amd64.deb"
+nginx_deb=$(find "$OUT" -maxdepth 1 -type f -name "nginx_${HOTFIX_VERSION}_*.deb" -print -quit)
 common_deb="$OUT/nginx-common_${HOTFIX_VERSION}_all.deb"
 mail_deb="$OUT/libnginx-mod-mail_${HOTFIX_VERSION}_amd64.deb"
-[ -f "$nginx_deb" ] && [ -f "$common_deb" ] && [ -f "$mail_deb" ]
+[ -n "$nginx_deb" ] && [ -f "$nginx_deb" ] && [ -f "$common_deb" ] && [ -f "$mail_deb" ]
 "$ROOT/install.sh" "$OUT"
 
 [ "$(dpkg-query -W -f='${Version}' nginx)" = "$HOTFIX_VERSION" ]
 [ "$(dpkg-query -W -f='${Version}' nginx-common)" = "$HOTFIX_VERSION" ]
 [ "$(dpkg-query -W -f='${Version}' libnginx-mod-mail)" = "$HOTFIX_VERSION" ]
-[ "$(dpkg-query -W -f='${Provides}' nginx)" = "$abi_before" ] || {
+[ "$(dpkg-query -W -f='${Version}' "$nginx_binary_package")" = "$HOTFIX_VERSION" ]
+[ "$(dpkg-query -W -f='${Provides}' "$nginx_binary_package")" = "$abi_before" ] || {
     echo "NGINX module ABI changed" >&2
     exit 1
 }
@@ -78,4 +94,4 @@ kill "$nginx_pid"
 wait "$nginx_pid" || true
 trap - EXIT
 
-echo "PASS: upgraded $BASE_VERSION -> $HOTFIX_VERSION with ABI $abi_before and working HTTP/2"
+echo "PASS: upgraded $BASE_VERSION -> $HOTFIX_VERSION with $nginx_binary_package ABI $abi_before and working HTTP/2"
