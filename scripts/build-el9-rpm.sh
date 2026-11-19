@@ -19,7 +19,19 @@ el9_nginx_release_vars "$TARGET"
 }
 
 dnf -q -y install ca-certificates cpio dnf-plugins-core gcc make patch \
-    python3-rpm rpm-build rpmdevtools >/dev/null
+    python3 python3-rpm rpm-build rpmdevtools >/dev/null
+
+if [ -n "${EL9_NEXT_RELEASE:-}" ]; then
+    python3 - "$EL9_BASE_RELEASE" "$EL9_HOTFIX_RELEASE" \
+        "$EL9_NEXT_RELEASE" <<'PY'
+import rpm
+import sys
+
+base, hotfix, next_release = sys.argv[1:]
+assert rpm.labelCompare((None, None, base), (None, None, hotfix)) < 0
+assert rpm.labelCompare((None, None, hotfix), (None, None, next_release)) < 0
+PY
+fi
 
 TOP=/build/rpmbuild
 [ ! -e "$TOP" ] || { echo "fixed RPM build path already exists: $TOP" >&2; exit 1; }
@@ -29,10 +41,15 @@ rpm -ivh --define "_topdir $TOP" "$SRC/$EL9_SOURCE_FILE" >/dev/null
 spec="$TOP/SPECS/nginx.spec"
 sed -i "s/^Release:.*/Release:           $EL9_HOTFIX_RELEASE/" "$spec"
 grep -qF "Release:           $EL9_HOTFIX_RELEASE" "$spec"
-grep -Eq '^%autosetup .* -p1|^%autosetup -p1' "$spec" || {
-    echo 'unsupported NGINX spec: expected %autosetup -p1' >&2
+manual_patch_application=0
+if grep -Eq '^%autosetup .* -p1|^%autosetup -p1' "$spec"; then
+    :
+elif grep -q '^%setup -q$' "$spec"; then
+    manual_patch_application=1
+else
+    echo 'unsupported NGINX spec: expected %autosetup -p1 or %setup -q' >&2
     exit 1
-}
+fi
 if grep -q '^%check' "$spec"; then
     echo 'unsupported NGINX spec: an existing %check section needs explicit integration' >&2
     exit 1
@@ -58,9 +75,13 @@ done
 
 max_patch=$(sed -n 's/^Patch\([0-9][0-9]*\):.*/\1/p' "$spec" | sort -n | tail -1)
 definitions=$(mktemp)
+manual_patches=$(mktemp)
 patch_number=$((max_patch + 1))
 for patch_name in "${patch_files[@]}"; do
     printf 'Patch%s:            %s\n' "$patch_number" "$patch_name" >> "$definitions"
+    if [ "$manual_patch_application" -eq 1 ]; then
+        printf '%%patch -P%s -p1\n' "$patch_number" >> "$manual_patches"
+    fi
     patch_number=$((patch_number + 1))
 done
 
@@ -78,6 +99,8 @@ mv "$spec.new" "$spec"
 rm -f "$definitions"
 
 prep_checks=$(mktemp)
+cat "$manual_patches" >> "$prep_checks"
+rm -f "$manual_patches"
 cat >> "$prep_checks" <<'EOF'
 perl -0pi -e 'die "EL9 HTTP\/2 private include already exists\n" if /#include <ngx_http_v2_connection\.hh>/; s/(#include <ngx_http\.h>\n)/$1#include <ngx_http_v2_connection.hh>\n/ or die "EL9 HTTP\/2 include context changed\n"' src/http/v2/ngx_http_v2.c
 EOF

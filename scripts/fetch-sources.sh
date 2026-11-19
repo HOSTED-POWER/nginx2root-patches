@@ -5,6 +5,7 @@ HERE=$(dirname "$(realpath "$0")")
 ROOT=$(dirname "$HERE")
 . "$ROOT/versions.sh"
 OUT=$(realpath -m "${1:-$ROOT/sources}")
+SCOPE=${2:-all}
 
 mkdir -p "$OUT"
 
@@ -21,27 +22,42 @@ fetch() {
     printf '%s  %s\n' "$sha256" "$OUT/$file" | sha256sum --check
 }
 
-for release in 8 9 10 11 12 13; do
-    nginx_release_vars "$release"
-    fetch "$SOURCE_POOL" "$ORIG_FILE" "$ORIG_SHA256"
-    fetch "$SOURCE_POOL" "$DEBIAN_FILE" "$DEBIAN_SHA256"
-done
+if [ "$SCOPE" = all ]; then
+    for release in 8 9 10 11 12 13; do
+        nginx_release_vars "$release"
+        fetch "$SOURCE_POOL" "$ORIG_FILE" "$ORIG_SHA256"
+        fetch "$SOURCE_POOL" "$DEBIAN_FILE" "$DEBIAN_SHA256"
+    done
 
-fetch "$CENTOS7_EPEL_SOURCE_POOL" "$CENTOS7_EPEL_SOURCE_FILE" \
-    "$CENTOS7_EPEL_SOURCE_SHA256"
+    fetch "$CENTOS7_EPEL_SOURCE_POOL" "$CENTOS7_EPEL_SOURCE_FILE" \
+        "$CENTOS7_EPEL_SOURCE_SHA256"
+fi
 
-for stream in 1.14 1.16 1.18 1.20; do
-    centos8_nginx_release_vars "$stream"
-    fetch "$CENTOS8_SOURCE_POOL" "$CENTOS8_SOURCE_FILE" \
-        "$CENTOS8_SOURCE_SHA256"
-done
+if [ "$SCOPE" = all ] || [ "$SCOPE" = el8 ]; then
+    while IFS= read -r target; do
+        el9_nginx_release_vars "$target"
+        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+    done < <(el8_targets)
+fi
 
-while IFS= read -r target; do
-    el9_nginx_release_vars "$target"
-    fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
-done < <(el9_targets)
+if [ "$SCOPE" = all ]; then
+    for stream in 1.14 1.16 1.18 1.20; do
+        centos8_nginx_release_vars "$stream"
+        fetch "$CENTOS8_SOURCE_POOL" "$CENTOS8_SOURCE_FILE" \
+            "$CENTOS8_SOURCE_SHA256"
+    done
+fi
 
-while IFS= read -r target; do
-    el9_nginx_release_vars "$target"
-    fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
-done < <(el10_targets)
+if [ "$SCOPE" = all ] || [ "$SCOPE" = el9 ]; then
+    while IFS= read -r target; do
+        el9_nginx_release_vars "$target"
+        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+    done < <(el9_targets)
+fi
+
+if [ "$SCOPE" = all ] || [ "$SCOPE" = el10 ]; then
+    while IFS= read -r target; do
+        el9_nginx_release_vars "$target"
+        fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+    done < <(el10_targets)
+fi

@@ -74,6 +74,10 @@ el9_targets() {
         oraclelinux:base oraclelinux:1.22 oraclelinux:1.24 oraclelinux:1.26
 }
 
+el8_targets() {
+    printf '%s\n' rockylinux8:1.24
+}
+
 el10_targets() {
     printf '%s\n' oraclelinux10:base
 }
@@ -83,8 +87,24 @@ el9_nginx_release_vars() {
     EL9_STREAM=${1#*:}
     EL9_MAJOR=9
     EL9_HOTFIX_SUFFIX='.0.1.hp1'
+    EL9_NEXT_RELEASE=''
 
     case "$1" in
+        rockylinux8:1.24)
+            EL9_VENDOR=rockylinux
+            EL9_STREAM=1.24
+            EL9_MAJOR=8
+            EL9_OS_ID=rocky
+            EL9_IMAGE=rockylinux
+            EL9_EPOCH=1
+            EL9_VERSION=1.24.0
+            EL9_BASE_RELEASE='3.module+el8.10.0+40424+5b12c67a.6'
+            EL9_SOURCE_FILE='nginx-1.24.0-3.module+el8.10.0+40424+5b12c67a.6.src.rpm'
+            EL9_SOURCE_SHA256='89ae5c95e004cc593f101132fb9659b720be3eeb8a23904e9d36dbb74c56b590'
+            EL9_SOURCE_URL='https://download.rockylinux.org/pub/rocky/8/AppStream/source/tree/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.24:8100020261111132044:e155f54d'
+            EL9_NEXT_RELEASE='3.module+el8.10.0+40424+5b12c67a.7'
+            ;;
         rhel:base)
             EL9_OS_ID=rhel
             EL9_IMAGE='registry.access.redhat.com/ubi9/ubi'
@@ -243,7 +263,7 @@ el9_nginx_release_vars() {
             EL9_MODULARITY_LABEL=''
             ;;
         *)
-            echo "unsupported EL9 NGINX target: $1" >&2
+            echo "unsupported Enterprise Linux NGINX target: $1" >&2
             return 1
             ;;
     esac

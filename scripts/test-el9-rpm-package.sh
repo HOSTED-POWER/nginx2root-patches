@@ -18,14 +18,25 @@ mapfile -t security_patches < <(el9_security_patches "$EL9_VERSION")
 }
 
 dnf -q -y install dnf-plugins-core >/dev/null
-if [ "$EL9_MAJOR" = 9 ]; then
+if [ "$EL9_MAJOR" = 8 ] || [ "$EL9_MAJOR" = 9 ]; then
     dnf -q -y module reset nginx >/dev/null
 fi
-if [ "$EL9_MAJOR" = 9 ] && [ "$EL9_STREAM" != base ]; then
+if { [ "$EL9_MAJOR" = 8 ] || [ "$EL9_MAJOR" = 9 ]; } && \
+    [ "$EL9_STREAM" != base ]; then
     dnf -q -y module enable "nginx:$EL9_STREAM" >/dev/null
 fi
 command -v curl >/dev/null 2>&1
-dnf -q -y install nginx nginx-mod-mail nginx-mod-stream >/dev/null
+nginx_packages=(nginx nginx-mod-mail nginx-mod-stream)
+if [ "$EL9_MAJOR" = 8 ]; then
+    nginx_packages+=(
+        nginx-all-modules
+        nginx-mod-devel
+        nginx-mod-http-image-filter
+        nginx-mod-http-perl
+        nginx-mod-http-xslt-filter
+    )
+fi
+dnf -q -y install "${nginx_packages[@]}" >/dev/null
 
 [ "$(rpm -q --qf '%{EPOCHNUM}:%{VERSION}-%{RELEASE}' nginx)" = "$EL9_BASE_EVR" ]
 mapfile -t packages_before < <(rpm -qa --qf '%{NAME}\n' 'nginx*' | sort -u)

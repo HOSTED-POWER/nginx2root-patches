@@ -14,8 +14,9 @@ Their versions are deliberately ordered below the next distribution update, so i
 your distribution ships its own update later, it takes over automatically through
 normal package upgrades.
 
-**Current status (19 November 2026):** `v1.5.0` adds the required native Oracle
-Linux 10 package family. `v1.4.0` contains 13 native EL9 vendor/stream package
+**Current status (19 November 2026):** `v1.6.0` adds the native Rocky Linux 8
+AppStream 1.24 package family. `v1.5.0` adds the required native Oracle Linux 10
+package family. `v1.4.0` contains 13 native EL9 vendor/stream package
 families, alongside the existing Debian and CentOS 7/8 releases. The signed Hosted Power APT
 repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
 12 currently selects `hp3`. Debian 13 now selects Debian's newer
@@ -38,7 +39,7 @@ NGINX), re-enable HTTP/2 (`listen 443 ssl http2;` on Debian 9–12 and CentOS 7/
 
 *Debian Security Tracker on 19 November 2026. Click the screenshot for the live status.*
 
-## Packages: Debian 8 through 13 and Enterprise Linux 7 through 9
+## Packages: Debian 8 through 13 and Enterprise Linux 7 through 10
 
 The `v1.3.2` release contains complete x86-64 package sets. Its `hp3` package
 revision upgrades the earlier builds while remaining below the next distribution
@@ -107,6 +108,20 @@ AlmaLinux 8 streams 1.14, 1.16, 1.18, 1.20, and 1.22 should be migrated to the
 supported 1.24 stream. AlmaLinux 9's retired 1.22 stream has not received these
 fixes. The `v1.4.0` release includes an exact native package for that retired
 stream where an immediate stream migration is not practical.
+
+## Rocky Linux 8
+
+Rocky Linux 8's supported NGINX 1.24 AppStream still ships vulnerable
+`1:1.24.0-3.module+el8.10.0+40424+5b12c67a.6`. The `v1.6.0` release provides
+the exact native hotfix
+`1:1.24.0-3.module+el8.10.0+40424+5b12c67a.6.0.1.hp1` with all seven applicable
+fixes. It preserves Rocky's package split, configuration, ABI, and
+`nginx:1.24:8100020261111132044:e155f54d` module identity.
+
+The installer rejects CentOS, AlmaLinux, Oracle Linux, another Rocky release,
+another stream, and any package release other than the exact Rocky base or this
+hotfix. A later Rocky `.7` package supersedes it through normal DNF version
+ordering.
 
 ## Enterprise Linux 9
 
@@ -221,7 +236,17 @@ sudo ./install-el9-rpm.sh
 ```
 
 The EL9 installer upgrades only the NGINX packages already installed, runs
-`nginx -t` before and after, and confirms an active service remains active.
+`nginx -t` before and after, confirms an active service remains active, and
+restarts it if any NGINX process still uses the replaced executable.
+
+For Rocky Linux 8 with the 1.24 AppStream enabled:
+
+```bash
+tar -xJf nginx2root-patches-v1.6.0-rockylinux-el8-1.24-x86_64.tar.xz
+cd nginx2root-patches-v1.6.0-rockylinux-el8-1.24-x86_64
+sha256sum -c SHA256SUMS
+sudo ./install-el8-rpm.sh
+```
 
 For Oracle Linux 10:
 
@@ -256,6 +281,8 @@ On a host with Docker:
 ```bash
 ./build.sh
 ./release.sh
+./build-el8.sh
+VERSION=v1.6.0 ./release-el8.sh
 JOBS=6 ./build-el9.sh
 VERSION=v1.4.0 ./release-el9.sh
 ./build-el10.sh
@@ -269,7 +296,7 @@ The build:
 2. applies the vendor source package changes, then the applicable reviewed security patches;
 3. checks the security-sensitive source conditions after patching;
 4. builds unprivileged inside clean matching `debian:8` through `debian:13`,
-   `centos:7`, and `centos:8` containers;
+   `centos:7`, `centos:8`, and `rockylinux:8` containers;
 5. upgrades a stock container, preserves the NGINX module ABI, runs `nginx -t`,
    starts fresh workers, and exercises HTTP/1.1, HTTP/2, reverse proxying, mail,
    stream, and representative packaged dynamic modules;
@@ -284,7 +311,7 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 
 ## Scope
 
-- Architectures through `v1.5.0`: Debian amd64 and Enterprise Linux x86-64 only.
+- Architectures through `v1.6.0`: Debian amd64 and Enterprise Linux x86-64 only.
 - Debian 8, 9, 10, and 11 and CentOS 7 and 8 are EOL releases. Their NGINX
   hotfixes do not provide security support for the rest of the operating system.
 - Debian 8 through 11 source provenance is
@@ -311,6 +338,7 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 - [Freexian Extended LTS repository](https://deb.freexian.com/extended-lts/)
 - [Archived EPEL 7 packages](https://archives.fedoraproject.org/pub/archive/epel/7/)
 - [Archived CentOS Linux 8 AppStream packages](https://vault.centos.org/8.5.2111/AppStream/)
+- [Rocky Linux 8 AppStream source packages](https://download.rockylinux.org/pub/rocky/8/AppStream/source/tree/Packages/n/)
 - [AlmaLinux NGINX security update guidance](https://almalinux.org/blog/2026-11-18-nginx2root/)
 - [AlmaLinux 9 erratum ALSA-2026-A025](https://errata.almalinux.org/9/ALSA-2026-A025.html)
 - [AlmaLinux 10 erratum ALSA-2026-A024](https://errata.almalinux.org/10/ALSA-2026-A024.html)

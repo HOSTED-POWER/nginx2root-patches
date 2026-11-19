@@ -1,5 +1,5 @@
 #!/bin/bash
-# Upgrade one exact EL9 NGINX package family from this bundle.
+# Upgrade one exact Enterprise Linux NGINX package family from this bundle.
 set -euo pipefail
 
 [ "$(id -u)" -eq 0 ] || {
@@ -23,7 +23,8 @@ TARGET_MAJOR=${TARGET_MAJOR:-9}
 
 host_arch=$(rpm --eval '%{_arch}')
 declare -A bundle_by_name=()
-mapfile -t available_rpms < <(find "$BUNDLE" -maxdepth 1 -type f -name '*.rpm' -print | sort)
+shopt -s nullglob
+available_rpms=("$BUNDLE"/*.rpm)
 [ "${#available_rpms[@]}" -gt 0 ] || {
     echo "ERROR: no RPM packages found in $BUNDLE" >&2
     exit 1
@@ -82,6 +83,28 @@ if [ "$was_active" -eq 1 ]; then
         echo 'ERROR: nginx was active before the upgrade but is not active now' >&2
         exit 1
     }
+
+    nginx_processes_use_installed_binary() {
+        local found=0 process_exe process_name status_file
+        for status_file in /proc/[0-9]*/status; do
+            process_name=$(awk '$1 == "Name:" { print $2; exit }' \
+                "$status_file" 2>/dev/null || true)
+            [ "$process_name" = nginx ] || continue
+            found=1
+            process_exe=$(readlink "${status_file%/status}/exe" 2>/dev/null || true)
+            [ "$process_exe" = /usr/sbin/nginx ] || return 1
+        done
+        [ "$found" -eq 1 ]
+    }
+
+    if ! nginx_processes_use_installed_binary; then
+        systemctl restart nginx
+        systemctl is-active --quiet nginx
+        nginx_processes_use_installed_binary || {
+            echo 'ERROR: nginx processes still use the replaced executable after restart' >&2
+            exit 1
+        }
+    fi
 fi
 
 echo "PASS: upgraded installed $TARGET_NAME $TARGET_MAJOR NGINX $TARGET_STREAM packages to $HOTFIX_EVR"
