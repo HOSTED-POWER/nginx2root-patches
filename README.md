@@ -6,6 +6,10 @@ November 2026 NGINX security fixes, built by
 patches, pinned source inputs, reproducible build scripts, and package-upgrade
 tests.
 
+Background and the story behind these packages:
+[nginx2root: patched NGINX packages for Debian, CentOS and Enterprise Linux](https://www.hosted-power.com/en/blog/nginx2root-cve-2026-123007-patched-nginx-packages-debian-8-13-and-centos-7)
+(Hosted Power blog).
+
 These packages contain the complete fixes for every nginx2root vulnerability that
 applies to each release. They are not a mitigation and need no follow-up.
 
