@@ -40,3 +40,8 @@ while IFS= read -r target; do
     el9_nginx_release_vars "$target"
     fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
 done < <(el9_targets)
+
+while IFS= read -r target; do
+    el9_nginx_release_vars "$target"
+    fetch "$EL9_SOURCE_URL" "$EL9_SOURCE_FILE" "$EL9_SOURCE_SHA256"
+done < <(el10_targets)

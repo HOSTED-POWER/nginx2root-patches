@@ -74,6 +74,10 @@ el9_targets() {
         oraclelinux:base oraclelinux:1.22 oraclelinux:1.24 oraclelinux:1.26
 }
 
+el10_targets() {
+    printf '%s\n' oraclelinux10:base
+}
+
 el9_nginx_release_vars() {
     EL9_VENDOR=${1%%:*}
     EL9_STREAM=${1#*:}
@@ -223,6 +227,20 @@ el9_nginx_release_vars() {
             EL9_SOURCE_SHA256='7e837161357eac4533efdd29f027e493474c21127289fda335d006b46cd0abd3'
             EL9_SOURCE_URL='https://yum.oracle.com/repo/OracleLinux/OL9/appstream/x86_64/getPackageSource'
             EL9_MODULARITY_LABEL='nginx:1.26:9080020260915033551:9'
+            ;;
+        oraclelinux10:base)
+            EL9_VENDOR=oraclelinux
+            EL9_STREAM=base
+            EL9_MAJOR=10
+            EL9_OS_ID=ol
+            EL9_IMAGE=oraclelinux
+            EL9_EPOCH=2
+            EL9_VERSION=1.26.3
+            EL9_BASE_RELEASE='6.0.1.el10_2.7'
+            EL9_SOURCE_FILE='nginx-1.26.3-6.0.1.el10_2.7.src.rpm'
+            EL9_SOURCE_SHA256='7d074b68a651bc0148004af23c96b66bef7c8e5679c35dc9d7b4cdd37bb60bd2'
+            EL9_SOURCE_URL='https://yum.oracle.com/repo/OracleLinux/OL10/appstream/x86_64/getPackageSource'
+            EL9_MODULARITY_LABEL=''
             ;;
         *)
             echo "unsupported EL9 NGINX target: $1" >&2

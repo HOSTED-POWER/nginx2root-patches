@@ -14,9 +14,9 @@ Their versions are deliberately ordered below the next distribution update, so i
 your distribution ships its own update later, it takes over automatically through
 normal package upgrades.
 
-**Current status (19 November 2026):** the public `v1.4.0` release contains the
-existing Debian, CentOS 7/8, and 13 new native EL9 vendor/stream package
-families. The signed Hosted Power APT
+**Current status (19 November 2026):** `v1.5.0` adds the required native Oracle
+Linux 10 package family. `v1.4.0` contains 13 native EL9 vendor/stream package
+families, alongside the existing Debian and CentOS 7/8 releases. The signed Hosted Power APT
 repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
 12 currently selects `hp3`. Debian 13 now selects Debian's newer
 `1.26.3-3+deb13u11` automatically; inspection of that source package confirms
@@ -126,6 +126,18 @@ The 1.20, 1.22, and 1.24 bundles contain the seven applicable fixes. The 1.26
 bundles contain all nine applicable fixes, including stream SNI verification
 and the HTTP/3 connection-lifetime fix. Every package changelog names each CVE.
 
+## Enterprise Linux 10
+
+RHEL 10, Rocky Linux 10, and AlmaLinux 10 now carry the fixed
+`1.26.3-16.el10_3.1` package lineage in their normal repositories and need no
+Hosted Power package. Oracle Linux 10 still ships
+`2:1.26.3-6.0.1.el10_2.7`; `v1.5.0` provides the exact native hotfix
+`2:1.26.3-6.0.1.el10_2.7.0.1.hp1` with all nine applicable fixes.
+
+The Oracle Linux 10 bundle preserves the original package split, configuration,
+epoch, ABI, and non-modular identity. Its installer rejects every other OS,
+release, package family, and architecture.
+
 ## Download and install
 
 Download the bundle for the matching Debian or Enterprise Linux package family from
@@ -211,6 +223,15 @@ sudo ./install-el9-rpm.sh
 The EL9 installer upgrades only the NGINX packages already installed, runs
 `nginx -t` before and after, and confirms an active service remains active.
 
+For Oracle Linux 10:
+
+```bash
+tar -xJf nginx2root-patches-v1.5.0-oraclelinux-el10-base-x86_64.tar.xz
+cd nginx2root-patches-v1.5.0-oraclelinux-el10-base-x86_64
+sha256sum -c SHA256SUMS
+sudo ./install-el10-rpm.sh
+```
+
 ## Safe upgrade path
 
 The version ordering is intentional:
@@ -237,6 +258,8 @@ On a host with Docker:
 ./release.sh
 JOBS=6 ./build-el9.sh
 VERSION=v1.4.0 ./release-el9.sh
+./build-el10.sh
+VERSION=v1.5.0 ./release-el10.sh
 ```
 
 The build:
@@ -261,7 +284,7 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 
 ## Scope
 
-- Architectures through `v1.4.0`: Debian amd64 and Enterprise Linux x86-64 only.
+- Architectures through `v1.5.0`: Debian amd64 and Enterprise Linux x86-64 only.
 - Debian 8, 9, 10, and 11 and CentOS 7 and 8 are EOL releases. Their NGINX
   hotfixes do not provide security support for the rest of the operating system.
 - Debian 8 through 11 source provenance is

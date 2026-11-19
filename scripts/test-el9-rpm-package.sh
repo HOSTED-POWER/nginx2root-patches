@@ -12,14 +12,16 @@ el9_nginx_release_vars "$TARGET"
 mapfile -t security_patches < <(el9_security_patches "$EL9_VERSION")
 
 . /etc/os-release
-[ "$ID" = "$EL9_OS_ID" ] && [ "${VERSION_ID%%.*}" = 9 ] || {
-    echo "test-el9-rpm-package.sh requires $EL9_OS_ID 9" >&2
+[ "$ID" = "$EL9_OS_ID" ] && [ "${VERSION_ID%%.*}" = "$EL9_MAJOR" ] || {
+    echo "test-el9-rpm-package.sh requires $EL9_OS_ID $EL9_MAJOR" >&2
     exit 1
 }
 
 dnf -q -y install dnf-plugins-core >/dev/null
-dnf -q -y module reset nginx >/dev/null
-if [ "$EL9_STREAM" != base ]; then
+if [ "$EL9_MAJOR" = 9 ]; then
+    dnf -q -y module reset nginx >/dev/null
+fi
+if [ "$EL9_MAJOR" = 9 ] && [ "$EL9_STREAM" != base ]; then
     dnf -q -y module enable "nginx:$EL9_STREAM" >/dev/null
 fi
 command -v curl >/dev/null 2>&1
@@ -82,5 +84,5 @@ nginx -s quit
 wait || true
 trap - EXIT
 
-"$HERE/test-rpm-runtime.sh" "EL9 $TARGET $EL9_HOTFIX_EVR"
-echo "PASS: upgraded EL9 $TARGET to $EL9_HOTFIX_EVR with package, module and runtime compatibility preserved"
+"$HERE/test-rpm-runtime.sh" "EL$EL9_MAJOR $TARGET $EL9_HOTFIX_EVR"
+echo "PASS: upgraded EL$EL9_MAJOR $TARGET to $EL9_HOTFIX_EVR with package, module and runtime compatibility preserved"

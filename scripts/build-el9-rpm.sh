@@ -176,6 +176,7 @@ esac
     printf 'TARGET_NAME=%q\n' "$target_name"
     printf 'TARGET_VENDOR=%q\n' "$EL9_VENDOR"
     printf 'TARGET_OS_ID=%q\n' "$EL9_OS_ID"
+    printf 'TARGET_MAJOR=%q\n' "$EL9_MAJOR"
     printf 'TARGET_STREAM=%q\n' "$EL9_STREAM"
     printf 'BASE_EVR=%q\n' "$EL9_BASE_EVR"
     printf 'HOTFIX_EVR=%q\n' "$EL9_HOTFIX_EVR"

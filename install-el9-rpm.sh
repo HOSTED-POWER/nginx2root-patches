@@ -14,9 +14,10 @@ BUNDLE=$(realpath "${1:-$(dirname "$0")}")
 }
 . "$BUNDLE/bundle.env"
 . /etc/os-release
+TARGET_MAJOR=${TARGET_MAJOR:-9}
 
-[ "$ID" = "$TARGET_OS_ID" ] && [ "${VERSION_ID%%.*}" = 9 ] || {
-    echo "ERROR: this bundle supports $TARGET_NAME 9 only" >&2
+[ "$ID" = "$TARGET_OS_ID" ] && [ "${VERSION_ID%%.*}" = "$TARGET_MAJOR" ] || {
+    echo "ERROR: this bundle supports $TARGET_NAME $TARGET_MAJOR only" >&2
     exit 1
 }
 
@@ -83,5 +84,5 @@ if [ "$was_active" -eq 1 ]; then
     }
 fi
 
-echo "PASS: upgraded installed $TARGET_NAME 9 NGINX $TARGET_STREAM packages to $HOTFIX_EVR"
+echo "PASS: upgraded installed $TARGET_NAME $TARGET_MAJOR NGINX $TARGET_STREAM packages to $HOTFIX_EVR"
 rpm -q --qf '%{NAME} %{EPOCHNUM}:%{VERSION}-%{RELEASE}\n' "${installed_names[@]}" | sort
