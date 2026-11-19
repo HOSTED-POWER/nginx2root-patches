@@ -37,21 +37,74 @@ if [ "$VERSION_ID" -le 10 ]; then
     quilt refresh -p ab --no-timestamps --no-index
 fi
 
-patches=(CVE-2026-123634.patch CVE-2026-113425.patch)
-if [ "$VERSION_ID" -ge 9 ]; then
-    patches=(
-        CVE-2026-123633.patch
-        CVE-2026-123634.patch
-        CVE-2026-123007.patch
-        CVE-2026-113425.patch
-    )
-fi
-[ "$VERSION_ID" = 13 ] && patches+=(CVE-2026-121810.patch)
+case "$VERSION_ID" in
+    8)
+        patches=(
+            CVE-2026-123634.patch
+            CVE-2026-113425.patch
+            CVE-2026-125283-legacy-core.patch
+        )
+        ;;
+    9)
+        patches=(
+            CVE-2026-123633.patch
+            CVE-2026-123634.patch
+            CVE-2026-123007.patch
+            CVE-2026-113425.patch
+            CVE-2026-125283-legacy-core.patch
+        )
+        ;;
+    10|11)
+        patches=(
+            CVE-2026-123633.patch
+            CVE-2026-123640.patch
+            CVE-2026-118899-legacy.patch
+            CVE-2026-123634.patch
+            CVE-2026-123007.patch
+            CVE-2026-113425.patch
+            CVE-2026-125283-legacy-module.patch
+        )
+        ;;
+    12)
+        patches=(
+            CVE-2023-44487.patch
+            CVE-2026-15176.patch
+            CVE-2026-93479.patch
+            CVE-2026-97205.patch
+            CVE-2026-123633.patch
+            CVE-2026-123640.patch
+            CVE-2026-118899.patch
+            CVE-2026-123634.patch
+            CVE-2026-123007-bookworm.patch
+            CVE-2026-113425.patch
+            CVE-2026-125283.patch
+        )
+        ;;
+    13)
+        patches=(
+            CVE-2026-123633.patch
+            CVE-2026-123640.patch
+            CVE-2026-120967.patch
+            CVE-2026-118899.patch
+            CVE-2026-123634.patch
+            CVE-2026-123007.patch
+            CVE-2026-113425.patch
+            CVE-2026-121810.patch
+            CVE-2026-125283.patch
+        )
+        ;;
+esac
 
 for patch in "${patches[@]}"; do
     source_patch="$PATCH_SOURCE/$patch"
     [ -f "$source_patch" ] || { echo "missing Debian security patch: $patch" >&2; exit 1; }
     cp "$source_patch" "debian/patches/$patch"
+    if [ "$VERSION_ID" = 10 ] && [ "$patch" = CVE-2026-123640.patch ]; then
+        strip_patch_hunk "debian/patches/$patch" \
+            '@@ -466,6 +503,14 @@ ngx_stream_ssl_preread_parse_record(ngx_stream_ssl_preread_ctx_t *ctx,'
+        strip_patch_hunk "debian/patches/$patch" \
+            '@@ -475,7 +520,6 @@ ngx_stream_ssl_preread_parse_record(ngx_stream_ssl_preread_ctx_t *ctx,'
+    fi
     if [ "$VERSION_ID" = 8 ] && [ "$patch" = CVE-2026-123634.patch ]; then
         strip_patch_hunk "debian/patches/$patch" \
             '@@ -570,9 +571,11 @@ ngx_resolve_name_done(ngx_resolver_ctx_t *ctx)'
@@ -119,7 +172,26 @@ for patch in "${patches[@]}"; do
     quilt refresh -p ab --no-timestamps --no-index
 done
 
-"$HERE/test-patches.sh" "$SOURCE" "$VERSION_ID"
+request_body_again_required=0
+try_files_required=1
+ssl_preread_required=0
+stream_sni_verify_required=0
+bookworm_baseline_required=0
+rapid_reset_required=0
+if [ "$VERSION_ID" -ge 10 ]; then
+    request_body_again_required=1
+    ssl_preread_required=2
+fi
+[ "$VERSION_ID" = 10 ] && ssl_preread_required=1
+[ "$VERSION_ID" = 13 ] && stream_sni_verify_required=1
+if [ "$VERSION_ID" = 12 ]; then
+    bookworm_baseline_required=1
+    rapid_reset_required=1
+fi
+"$HERE/test-patches.sh" "$SOURCE" "$VERSION_ID" 1 0 \
+    "$request_body_again_required" "$try_files_required" \
+    "$ssl_preread_required" "$stream_sni_verify_required" \
+    "$bookworm_baseline_required" "$rapid_reset_required"
 
 DEBEMAIL='packages@hosted-power.com' DEBFULLNAME='Hosted Power' \
     dch --newversion "$HOTFIX_VERSION" --distribution "$RELEASE_CODENAME" --force-distribution \

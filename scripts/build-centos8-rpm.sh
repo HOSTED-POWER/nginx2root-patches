@@ -29,8 +29,8 @@ mkdir -p "$TOP" "$OUT"
 rpm -ivh --define "_topdir $TOP" "$SRC/$CENTOS8_SOURCE_FILE" >/dev/null
 
 spec="$TOP/SPECS/nginx.spec"
-sed -i '/^Release:/ s/$/.0.1.hp1/' "$spec"
-grep -q '^Release:.*\.0\.1\.hp1$' "$spec"
+sed -i '/^Release:/ s/$/.0.1.hp2/' "$spec"
+grep -q '^Release:.*\.0\.1\.hp2$' "$spec"
 
 patch_files=()
 if [ "$STREAM" = 1.14 ] || [ "$STREAM" = 1.16 ]; then
@@ -39,12 +39,14 @@ if [ "$STREAM" = 1.14 ] || [ "$STREAM" = 1.16 ]; then
     patch_files+=("$prerequisite")
 fi
 
-security_patches=(CVE-2026-123634.patch CVE-2026-123007.patch CVE-2026-113425.patch)
-[ "$STREAM" = 1.20 ] && security_patches=(
+security_patches=(
     CVE-2026-123633.patch
+    CVE-2026-123640.patch
+    CVE-2026-118899-legacy.patch
     CVE-2026-123634.patch
     CVE-2026-123007.patch
     CVE-2026-113425.patch
+    CVE-2026-125283-legacy-module.patch
 )
 
 for patch_name in "${security_patches[@]}"; do
@@ -52,6 +54,12 @@ for patch_name in "${security_patches[@]}"; do
     if [ "$patch_name" = CVE-2026-123633.patch ]; then
         strip_patch_hunk "$TOP/SOURCES/$patch_name" \
             '@@ -3109,6 +3109,8 @@ ngx_http_v2_create_stream(ngx_http_v2_connection_t *h2c)'
+    fi
+    if [ "$patch_name" = CVE-2026-123640.patch ] && [ "$STREAM" = 1.14 ]; then
+        strip_patch_hunk "$TOP/SOURCES/$patch_name" \
+            '@@ -466,6 +503,14 @@ ngx_stream_ssl_preread_parse_record(ngx_stream_ssl_preread_ctx_t *ctx,'
+        strip_patch_hunk "$TOP/SOURCES/$patch_name" \
+            '@@ -475,7 +520,6 @@ ngx_stream_ssl_preread_parse_record(ngx_stream_ssl_preread_ctx_t *ctx,'
     fi
     if [ "$patch_name" = CVE-2026-123007.patch ]; then
         strip_patch_hunk "$TOP/SOURCES/$patch_name" \
@@ -124,22 +132,22 @@ done
 cat >> "$prep_block" <<'EOF'
 perl -0pi -e 's/(    ngx_http_v2_connection_t\s+\*h2c;\n)/$1    ngx_http_v2_connection_private_t  *h2p;\n/ or die "CentOS 8 HTTP\/2 declaration changed\n"' src/http/v2/ngx_http_v2.c
 EOF
-if [ "$STREAM" = 1.20 ]; then
-    cat >> "$prep_block" <<'EOF'
+cat >> "$prep_block" <<'EOF'
 perl -0pi -e 's/(    if \(push\) \{\n        h2c->pushing\+\+;\n\n    \} else \{\n        h2c->processing\+\+;\n    \}\n)/$1\n    ngx_reusable_connection(h2c->connection, 0);\n/ or die "CentOS 8 HTTP\/2 stream creation changed\n"' src/http/v2/ngx_http_v2.c
 EOF
-fi
 
 cp "$HERE/test-patches.sh" "$TOP/SOURCES/test-patches.sh"
 printf 'Source211:         test-patches.sh\n' >> "$definitions"
-reuse_required=0
-[ "$STREAM" = 1.20 ] && reuse_required=1
+reuse_required=1
 smtp_read_guard_required=0
 if [ "$STREAM" = 1.14 ] || [ "$STREAM" = 1.16 ]; then
     smtp_read_guard_required=1
 fi
-printf '\n%%check\n%%{SOURCE211} . 11 %s %s\n\n' \
-    "$reuse_required" "$smtp_read_guard_required" >> "$prep_block"
+ssl_preread_required=2
+[ "$STREAM" = 1.14 ] && ssl_preread_required=1
+printf '\n%%check\n%%{SOURCE211} . 11 %s %s 1 1 %s 0 0 0\n\n' \
+    "$reuse_required" "$smtp_read_guard_required" "$ssl_preread_required" \
+    >> "$prep_block"
 
 awk -v insert="$definitions" '
     !done && /^%description/ {

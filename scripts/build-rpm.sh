@@ -26,14 +26,17 @@ mkdir -p "$TOP" "$OUT"
 rpm -ivh --define "_topdir $TOP" "$SRC/$CENTOS7_EPEL_SOURCE_FILE" >/dev/null
 
 spec="$TOP/SPECS/nginx.spec"
-sed -i 's/^Release:[[:space:]]*10%{?dist}$/Release:           10%{?dist}.0.1.hp1/' "$spec"
-grep -q '^Release:[[:space:]]*10%{?dist}.0.1.hp1$' "$spec"
+sed -i 's/^Release:[[:space:]]*10%{?dist}$/Release:           10%{?dist}.0.1.hp2/' "$spec"
+grep -q '^Release:[[:space:]]*10%{?dist}.0.1.hp2$' "$spec"
 
 patches=(
     CVE-2026-123633.patch
+    CVE-2026-123640.patch
+    CVE-2026-118899-legacy.patch
     CVE-2026-123634.patch
     CVE-2026-123007.patch
     CVE-2026-113425.patch
+    CVE-2026-125283-legacy-module.patch
 )
 patch_number=4
 for patch in "${patches[@]}"; do
@@ -58,13 +61,14 @@ cat > "$TOP/SOURCES/CVE-2026-123007-epel7-context.patch" <<'EOF'
 
      c = rev->data;
 EOF
-sed -i '/^Patch7:/a Patch8:            CVE-2026-123007-epel7-context.patch' "$spec"
+context_patch_number=$patch_number
+sed -i "/^Patch$((patch_number - 1)):/a Patch${context_patch_number}:            CVE-2026-123007-epel7-context.patch" "$spec"
 cp "$ROOT/scripts/test-patches.sh" "$TOP/SOURCES/test-patches.sh"
 cp "$ROOT/scripts/gpgverify-rpm.sh" "$TOP/SOURCES/gpgverify-rpm.sh"
 chmod 0755 "$TOP/SOURCES/gpgverify-rpm.sh"
 sed -i '/^Source210:/a Source211:         test-patches.sh' "$spec"
-sed -i '/^%build$/i %check\n%{SOURCE211} . 11\n' "$spec"
-sed -i '/^%changelog$/a * Wed Nov 18 2026 Hosted Power <packages@hosted-power.com> - 1:1.20.1-10.el7.0.1.hp1\n- Backport fixes for the November 2026 NGINX security vulnerabilities.\n' "$spec"
+sed -i '/^%build$/i %check\n%{SOURCE211} . 11 1 0 1 1 2 0 0 0\n' "$spec"
+sed -i '/^%changelog$/a * Thu Nov 19 2026 Hosted Power <packages@hosted-power.com> - 1:1.20.1-10.el7.0.1.hp2\n- Complete backports for the November 2026 NGINX security vulnerabilities.\n' "$spec"
 
 yum-builddep -q -y "$SRC/$CENTOS7_EPEL_SOURCE_FILE" >/dev/null
 useradd --system --no-create-home builder

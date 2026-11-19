@@ -15,7 +15,7 @@ ROOT=$(dirname "$HERE")
 }
 
 configure_centos7_vault
-yum -q -y install nginx nginx-mod-mail nghttp2 >/dev/null
+yum -q -y install curl nginx nginx-mod-mail nginx-mod-stream nghttp2 >/dev/null
 
 base_evr="$CENTOS7_EPEL_EPOCH:$CENTOS7_EPEL_VERSION-$CENTOS7_EPEL_BASE_RELEASE"
 hotfix_evr="$CENTOS7_EPEL_EPOCH:$CENTOS7_EPEL_VERSION-$CENTOS7_EPEL_HOTFIX_RELEASE"
@@ -63,5 +63,10 @@ trap 'nginx -s quit >/dev/null 2>&1 || true' EXIT
 sleep 1
 http2_output=$(nghttp -nv http://127.0.0.1:8080/ 2>&1)
 printf '%s\n' "$http2_output" | grep -Eq ':status: 200|:status: 200$'
+nginx -s quit
+wait || true
+trap - EXIT
+
+"$HERE/test-rpm-runtime.sh" "CentOS 7 EPEL $hotfix_evr"
 
 echo "PASS: upgraded archived EPEL 7 NGINX packages to $hotfix_evr with ABI and HTTP/2 preserved"

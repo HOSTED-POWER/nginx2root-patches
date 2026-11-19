@@ -32,19 +32,21 @@ NGINX), re-enable HTTP/2 (`listen 443 ssl http2;` on Debian 9–12 and CentOS 7/
 
 ## Packages: Debian 8 through 13 and CentOS 7 through 8
 
-The `v1.3.0` release contains complete x86-64 package sets:
+The `v1.3.1` release contains complete x86-64 package sets. Its `hp2` package
+revision upgrades the earlier `hp1` builds while remaining below the next
+distribution update:
 
 | Debian | Base package | Hotfix package | Included fixes |
 |---|---|---|---|
-| 8 Jessie | `1.6.2-5+deb8u10` | `1.6.2-5+deb8u10.1~hp1` | CVE-2026-123634, CVE-2026-113425 |
-| 9 Stretch | `1.10.3-1+deb9u10` | `1.10.3-1+deb9u10.1~hp1` | CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-113425 |
-| 10 Buster | `1.14.2-2+deb10u9` | `1.14.2-2+deb10u9.1~hp1` | the same four |
-| 11 Bullseye | `1.18.0-6.1+deb11u9` | `1.18.0-6.1+deb11u9.1~hp1` | the same four |
-| 12 Bookworm | `1.22.1-9+deb12u10` | `1.22.1-9+deb12u10.1~hp1` | CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-113425 |
-| 13 Trixie | `1.26.3-3+deb13u10` | `1.26.3-3+deb13u10.1~hp1` | the same four, plus CVE-2026-121810 (HTTP/3) |
+| 8 Jessie | `1.6.2-5+deb8u10` | `1.6.2-5+deb8u10.1~hp2` | CVE-2026-113425, CVE-2026-123634, CVE-2026-125283 |
+| 9 Stretch | `1.10.3-1+deb9u10` | `1.10.3-1+deb9u10.1~hp2` | CVE-2026-113425, CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-125283 |
+| 10 Buster | `1.14.2-2+deb10u9` | `1.14.2-2+deb10u9.1~hp2` | the Stretch fixes plus CVE-2026-118899 and CVE-2026-123640 |
+| 11 Bullseye | `1.18.0-6.1+deb11u9` | `1.18.0-6.1+deb11u9.1~hp2` | the same seven fixes as Buster |
+| 12 Bookworm | `1.22.1-9+deb12u10` | `1.22.1-9+deb12u10.1~hp2` | the same seven, plus CVE-2026-15176, CVE-2026-93479, CVE-2026-97205 and additional CVE-2023-44487 hardening |
+| 13 Trixie | `1.26.3-3+deb13u10` | `1.26.3-3+deb13u10.1~hp2` | all nine applicable NGINX 1.30.7 fixes, including CVE-2026-120967 and CVE-2026-121810 |
 
 Debian 8 NGINX predates HTTP/2, so CVE-2026-123007 and CVE-2026-123633 do not
-apply. Its package contains the resolver and mail proxy fixes. Debian 8 through
+apply. Its package contains all three fixes applicable to that old source tree. Debian 8 through
 11 use source packages from Freexian Extended LTS.
 Their older NGINX trees require small context adaptations and, for Debian 9 and
 10, the upstream SMTP duplicate-resolution prerequisite from 2019. Every adapted
@@ -52,11 +54,11 @@ source tree is checked for the security-sensitive conditions before it is built.
 
 | Distribution | Base package | Hotfix package | Included fixes |
 |---|---|---|---|
-| CentOS 7 archived EPEL | `1:1.20.1-10.el7` | `1:1.20.1-10.el7.0.1.hp1` | CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-113425 |
-| CentOS 8 AppStream 1.14 (original/default) | `1:1.14.1-9.module_el8.0.0+184+e34fea82` | `1:1.14.1-9.module_el8.0.0+184+e34fea82.0.1.hp1` | CVE-2026-123007, CVE-2026-123634, CVE-2026-113425 |
-| CentOS 8 AppStream 1.16 | `1:1.16.1-2.module_el8.4.0+820+127618ce.1` | `1:1.16.1-2.module_el8.4.0+820+127618ce.1.0.1.hp1` | the same three |
-| CentOS 8 AppStream 1.18 | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1` | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1.0.1.hp1` | the same three |
-| CentOS 8 AppStream 1.20 | `1:1.20.0-2.module_el8.5.0+899+43b718f6` | `1:1.20.0-2.module_el8.5.0+899+43b718f6.0.1.hp1` | the same three, plus CVE-2026-123633 |
+| CentOS 7 archived EPEL | `1:1.20.1-10.el7` | `1:1.20.1-10.el7.0.1.hp2` | seven applicable fixes: CVE-2026-113425, CVE-2026-118899, CVE-2026-123007, CVE-2026-123633, CVE-2026-123634, CVE-2026-123640, CVE-2026-125283 |
+| CentOS 8 AppStream 1.14 (original/default) | `1:1.14.1-9.module_el8.0.0+184+e34fea82` | `1:1.14.1-9.module_el8.0.0+184+e34fea82.0.1.hp2` | the same seven applicable fixes |
+| CentOS 8 AppStream 1.16 | `1:1.16.1-2.module_el8.4.0+820+127618ce.1` | `1:1.16.1-2.module_el8.4.0+820+127618ce.1.0.1.hp2` | the same seven applicable fixes |
+| CentOS 8 AppStream 1.18 | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1` | `1:1.18.0-3.module_el8.4.0+818+5ada96a6.1.0.1.hp2` | the same seven applicable fixes |
+| CentOS 8 AppStream 1.20 | `1:1.20.0-2.module_el8.5.0+899+43b718f6` | `1:1.20.0-2.module_el8.5.0+899+43b718f6.0.1.hp2` | the same seven applicable fixes |
 
 The CentOS 7 package set targets only NGINX installed from the archived EPEL 7
 package family. The installer rejects nginx.org, control-panel, and other package
@@ -92,8 +94,8 @@ Download the bundle for the matching Debian or CentOS package family from
 
 ```bash
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.3.0-debian12-amd64.tar.xz
-cd nginx2root-patches-v1.3.0-debian12-amd64
+tar -xJf nginx2root-patches-v1.3.1-debian12-amd64.tar.xz
+cd nginx2root-patches-v1.3.1-debian12-amd64
 sha256sum -c SHA256SUMS
 sudo ./install.sh
 ```
@@ -125,15 +127,15 @@ For CentOS 7 with the archived EPEL package family:
 
 ```bash
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.3.0-centos7-epel-x86_64.tar.xz
-cd nginx2root-patches-v1.3.0-centos7-epel-x86_64
+tar -xJf nginx2root-patches-v1.3.1-centos7-epel-x86_64.tar.xz
+cd nginx2root-patches-v1.3.1-centos7-epel-x86_64
 sha256sum -c SHA256SUMS
 sudo ./install-rpm.sh
 ```
 
 The RPM installer upgrades only already-installed NGINX packages from the bundle,
-checks configuration before and after, and verifies that an active service stays
-active.
+accepts either the vendor base or earlier `hp1` build, checks configuration before
+and after, and verifies that an active service stays active.
 
 For CentOS Linux 8, first identify the installed AppStream family:
 
@@ -146,8 +148,8 @@ bundle. For example, for the original/default 1.14 line:
 
 ```bash
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xJf nginx2root-patches-v1.3.0-centos8-appstream-1.14-x86_64.tar.xz
-cd nginx2root-patches-v1.3.0-centos8-appstream-1.14-x86_64
+tar -xJf nginx2root-patches-v1.3.1-centos8-appstream-1.14-x86_64.tar.xz
+cd nginx2root-patches-v1.3.1-centos8-appstream-1.14-x86_64
 sha256sum -c SHA256SUMS
 sudo ./install-centos8-rpm.sh
 ```
@@ -166,7 +168,7 @@ distribution base < Hosted Power hotfix < distribution point update
 For example:
 
 ```text
-1.22.1-9+deb12u10 < 1.22.1-9+deb12u10.1~hp1 < 1.22.1-9+deb12u10.1
+1.22.1-9+deb12u10 < 1.22.1-9+deb12u10.1~hp1 < 1.22.1-9+deb12u10.1~hp2 < 1.22.1-9+deb12u10.1
 ```
 
 No pin, hold, new epoch, diversion, or package-name change is used. A higher
@@ -190,18 +192,20 @@ The build:
 4. builds unprivileged inside clean matching `debian:8` through `debian:13`,
    `centos:7`, and `centos:8` containers;
 5. upgrades a stock container, preserves the NGINX module ABI, runs `nginx -t`,
-   and serves an HTTP/2 smoke request;
+   starts fresh workers, and exercises HTTP/1.1, HTTP/2, reverse proxying, mail,
+   stream, and representative packaged dynamic modules;
 6. confirms each hotfix sorts above the vulnerable package and below a future vendor update.
 
-The committed security patches are copied from Debian's fixed `nginx 1.30.6-4`
-source package and retain their upstream commit links and authorship. Older
+The committed security patches come from upstream NGINX 1.30.7 and Debian's
+reviewed Bookworm and Trixie security branches, retaining upstream links and
+authorship. Older
 releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 `scripts/build-centos8-rpm.sh`; the resulting source semantics are checked by
 `scripts/test-patches.sh`.
 
 ## Scope
 
-- Architectures in `v1.3.0`: Debian amd64 and CentOS x86-64 only.
+- Architectures in `v1.3.1`: Debian amd64 and CentOS x86-64 only.
 - Debian 8, 9, 10, and 11 and CentOS 7 and 8 are EOL releases. Their NGINX
   hotfixes do not provide security support for the rest of the operating system.
 - Debian 8 through 11 source provenance is
@@ -220,6 +224,10 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 - [Debian tracker: CVE-2026-123634](https://security-tracker.debian.org/tracker/CVE-2026-123634)
 - [Debian tracker: CVE-2026-113425](https://security-tracker.debian.org/tracker/CVE-2026-113425)
 - [Debian tracker: CVE-2026-121810](https://security-tracker.debian.org/tracker/CVE-2026-121810)
+- [NGINX security advisories](https://nginx.org/en/security_advisories.html)
+- [Ubuntu analysis: CVE-2026-118899](https://ubuntu.com/security/CVE-2026-118899)
+- [Ubuntu analysis: CVE-2026-123640](https://ubuntu.com/security/CVE-2026-123640)
+- [Ubuntu analysis: CVE-2026-125283](https://ubuntu.com/security/CVE-2026-125283)
 - [Debian fixed source package](https://tracker.debian.org/pkg/nginx)
 - [Freexian Extended LTS repository](https://deb.freexian.com/extended-lts/)
 - [Archived EPEL 7 packages](https://archives.fedoraproject.org/pub/archive/epel/7/)

@@ -18,7 +18,7 @@ centos8_nginx_release_vars "$STREAM"
 
 configure_centos8_vault
 dnf -q -y module enable "nginx:$STREAM" >/dev/null
-dnf -q -y install nginx nginx-mod-mail nghttp2 >/dev/null
+dnf -q -y install curl nginx nginx-mod-mail nginx-mod-stream nghttp2 >/dev/null
 
 base_evr="$CENTOS8_EPOCH:$CENTOS8_VERSION-$CENTOS8_BASE_RELEASE"
 hotfix_evr="$CENTOS8_EPOCH:$CENTOS8_VERSION-$CENTOS8_HOTFIX_RELEASE"
@@ -66,5 +66,10 @@ trap 'nginx -s quit >/dev/null 2>&1 || true' EXIT
 sleep 1
 http2_output=$(nghttp -nv http://127.0.0.1:8080/ 2>&1)
 printf '%s\n' "$http2_output" | grep -Eq ':status: 200|:status: 200$'
+nginx -s quit
+wait || true
+trap - EXIT
+
+"$HERE/test-rpm-runtime.sh" "CentOS 8 AppStream $STREAM $hotfix_evr"
 
 echo "PASS: upgraded CentOS 8 NGINX $STREAM to $hotfix_evr with module identity, package compatibility and HTTP/2 preserved"

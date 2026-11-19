@@ -16,7 +16,8 @@ BUNDLE=$(realpath "${1:-$(dirname "$0")}")
 }
 
 base_evr='1:1.20.1-10.el7'
-hotfix_evr='1:1.20.1-10.el7.0.1.hp1'
+previous_hotfix_evr='1:1.20.1-10.el7.0.1.hp1'
+hotfix_evr='1:1.20.1-10.el7.0.1.hp2'
 host_arch=$(rpm --eval '%{_arch}')
 
 mapfile -t available_rpms < <(find "$BUNDLE" -maxdepth 1 -type f -name '*.rpm' -print | sort)
@@ -59,7 +60,7 @@ selected_rpms=()
 for package_name in "${installed_names[@]}"; do
     package_evr=$(rpm -q --qf '%{EPOCHNUM}:%{VERSION}-%{RELEASE}' "$package_name")
     case "$package_evr" in
-        "$base_evr"|"$hotfix_evr") ;;
+        "$base_evr"|"$previous_hotfix_evr"|"$hotfix_evr") ;;
         *)
             echo "ERROR: installed $package_name version $package_evr is not the archived EPEL 7 package family" >&2
             exit 1

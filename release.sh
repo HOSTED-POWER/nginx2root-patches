@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT=$(dirname "$(realpath "$0")")
 OUT=$(realpath -m "${OUT:-$ROOT/out}")
 DEST=$(realpath -m "${DEST:-$ROOT/release}")
-VERSION=${VERSION:-v1.3.0}
+VERSION=${VERSION:-v1.3.1}
 
 mkdir -p "$DEST"
 work=$(mktemp -d)

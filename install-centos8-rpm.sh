@@ -23,9 +23,10 @@ nginx_rpm=$(find "$BUNDLE" -maxdepth 1 -type f -name 'nginx-[0-9]*.rpm' -print -
 }
 
 hotfix_evr=$(rpm -qp --qf '%{EPOCHNUM}:%{VERSION}-%{RELEASE}' "$nginx_rpm")
-base_evr=${hotfix_evr%.0.1.hp1}
+base_evr=${hotfix_evr%.0.1.hp2}
+previous_hotfix_evr=${hotfix_evr%.hp2}.hp1
 case "$hotfix_evr" in
-    1:1.*-*.module_el8*.0.1.hp1) ;;
+    1:1.*-*.module_el8*.0.1.hp2) ;;
     *) echo "ERROR: unexpected CentOS 8 hotfix version $hotfix_evr" >&2; exit 1 ;;
 esac
 
@@ -60,7 +61,7 @@ selected_rpms=()
 for package_name in "${installed_names[@]}"; do
     package_evr=$(rpm -q --qf '%{EPOCHNUM}:%{VERSION}-%{RELEASE}' "$package_name")
     case "$package_evr" in
-        "$base_evr"|"$hotfix_evr") ;;
+        "$base_evr"|"$previous_hotfix_evr"|"$hotfix_evr") ;;
         *) echo "ERROR: installed $package_name version $package_evr does not match this bundle" >&2; exit 1 ;;
     esac
     [ -n "${bundle_by_name[$package_name]:-}" ] || {
