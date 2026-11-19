@@ -14,6 +14,16 @@ Their versions are deliberately ordered below the next distribution update, so i
 your distribution ships its own update later, it takes over automatically through
 normal package upgrades.
 
+## Keep HTTP/2 on
+
+Disabling HTTP/2 only blocks CVE-2026-123007 and CVE-2026-123633. It leaves the
+resolver, mail-proxy and HTTP/3 issues open, and costs performance for every
+client. These packages fix all applicable issues, so HTTP/2 can stay enabled.
+
+If you disabled HTTP/2 as a stopgap: install the packages (the upgrade restarts
+NGINX), re-enable HTTP/2 (`listen 443 ssl http2;` on Debian 9–12 and CentOS 7,
+`http2 on;` on Debian 13), then run `nginx -t` and reload.
+
 [![Debian Security Tracker showing Bookworm and Trixie vulnerable to CVE-2026-123007 on 19 November 2026](docs/debian-tracker-CVE-2026-123007-2026-11-19.png)](https://security-tracker.debian.org/tracker/CVE-2026-123007)
 
 *Debian Security Tracker on 19 November 2026. Click the screenshot for the live status.*
