@@ -5,9 +5,13 @@ security fixes, built by [Hosted Power](https://www.hosted-power.com/). The
 repository contains the exact patches, pinned source inputs, reproducible build
 scripts, and package-upgrade tests.
 
+These packages contain the complete fixes for every nginx2root vulnerability that
+applies to each release. They are not a mitigation and need no follow-up.
+
 The packages preserve the distribution build configuration and package layout.
-Their versions are deliberately ordered below the next distribution update, so
-normal package upgrades can hand back to the distribution package automatically.
+Their versions are deliberately ordered below the next distribution update, so if
+your distribution ships its own update later, it takes over automatically through
+normal package upgrades.
 
 [![Debian Security Tracker showing Bookworm and Trixie vulnerable to CVE-2026-123007 on 19 November 2026](docs/debian-tracker-CVE-2026-123007-2026-11-19.png)](https://security-tracker.debian.org/tracker/CVE-2026-123007)
 
@@ -59,7 +63,7 @@ this repository. Migrate those installations to the supported 1.24 stream.
 
 ## Download and install
 
-Download the bundle for the exact Debian major version from
+Download the bundle for the exact Debian major version, or CentOS 7, from
 [Releases](https://github.com/HOSTED-POWER/nginx2root-patches/releases), then:
 
 ```bash
@@ -156,7 +160,7 @@ resulting source semantics are checked by `scripts/test-patches.sh`.
 - Debian 8 through 11 source provenance is
   Freexian Extended LTS, and users must separately ensure their full operating
   system remains supported and patched.
-- These packages preserve Debian's configuration paths, maintainer scripts,
+- These packages preserve the distribution's configuration paths, maintainer scripts,
   compile options, and dynamic-module ABI.
 - They do not make an exposed NGINX configuration safe by themselves unless the
   matching `nginx` binary and any installed affected module are upgraded.
