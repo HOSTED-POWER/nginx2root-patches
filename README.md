@@ -16,9 +16,11 @@ normal package upgrades.
 
 ## Keep HTTP/2 on
 
-Disabling HTTP/2 only blocks CVE-2026-123007 and CVE-2026-123633. It leaves the
-resolver, mail-proxy and HTTP/3 issues open, and costs performance for every
-client. These packages fix all applicable issues, so HTTP/2 can stay enabled.
+**Disabling HTTP/2 does not fix nginx2root.** It only blocks CVE-2026-123007 and
+CVE-2026-123633. The other three stay open: the resolver (CVE-2026-123634), the
+mail proxy (CVE-2026-113425) and HTTP/3 (CVE-2026-121810). It also costs
+performance for every client. These packages fix all applicable issues, so
+HTTP/2 can stay enabled.
 
 If you disabled HTTP/2 as a stopgap: install the packages (the upgrade restarts
 NGINX), re-enable HTTP/2 (`listen 443 ssl http2;` on Debian 9–12 and CentOS 7/8,
