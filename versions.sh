@@ -75,7 +75,7 @@ el9_targets() {
 }
 
 el8_targets() {
-    printf '%s\n' rockylinux8:1.24
+    printf '%s\n' rhel8:1.24 rockylinux8:1.24
 }
 
 el10_targets() {
@@ -90,6 +90,21 @@ el9_nginx_release_vars() {
     EL9_NEXT_RELEASE=''
 
     case "$1" in
+        rhel8:1.24)
+            EL9_VENDOR=rhel
+            EL9_STREAM=1.24
+            EL9_MAJOR=8
+            EL9_OS_ID=rhel
+            EL9_IMAGE='registry.access.redhat.com/ubi8/ubi'
+            EL9_EPOCH=1
+            EL9_VERSION=1.24.0
+            EL9_BASE_RELEASE='3.module+el8.10.0+25265+69171071.6'
+            EL9_SOURCE_FILE='nginx-1.24.0-3.module+el8.10.0+25265+69171071.6.src.rpm'
+            EL9_SOURCE_SHA256='de0499cf8262d9355d9931d965d7f2b069a1b59e270df1dacb7540bbd9f80644'
+            EL9_SOURCE_URL='https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/appstream/source/SRPMS/Packages/n'
+            EL9_MODULARITY_LABEL='nginx:1.24:8100020261102220528:489197e6'
+            EL9_NEXT_RELEASE='3.module+el8.10.0+25265+69171071.7'
+            ;;
         rockylinux8:1.24)
             EL9_VENDOR=rockylinux
             EL9_STREAM=1.24

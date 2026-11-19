@@ -19,7 +19,7 @@ el9_nginx_release_vars "$TARGET"
 }
 
 dnf -q -y install ca-certificates cpio dnf-plugins-core gcc make patch \
-    python3 python3-rpm rpm-build rpmdevtools >/dev/null
+    python3 python3-rpm rpm-build >/dev/null
 
 if [ -n "${EL9_NEXT_RELEASE:-}" ]; then
     python3 - "$EL9_BASE_RELEASE" "$EL9_HOTFIX_RELEASE" \

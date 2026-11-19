@@ -18,7 +18,11 @@ mkdir -p "$SOURCES" "$OUT/el8"
 while IFS= read -r target; do
     el9_nginx_release_vars "$target"
     output="$OUT/el8/$EL9_VENDOR/$EL9_STREAM"
-    image="$EL9_IMAGE:$EL9_MAJOR"
+    if [ "$EL9_VENDOR" = rhel ]; then
+        image="$EL9_IMAGE:latest"
+    else
+        image="$EL9_IMAGE:$EL9_MAJOR"
+    fi
     mkdir -p "$output"
     docker run --rm --hostname packages.hosted-power.com \
         -v "$ROOT:/project:ro" \

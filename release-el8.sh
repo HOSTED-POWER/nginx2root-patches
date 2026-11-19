@@ -1,11 +1,11 @@
 #!/bin/bash
-# Create the deterministic Rocky Linux 8 release bundle.
+# Create deterministic native Enterprise Linux 8 release bundles.
 set -euo pipefail
 
 ROOT=$(dirname "$(realpath "$0")")
 OUT=$(realpath -m "${OUT:-$ROOT/out}")
 DEST=$(realpath -m "${DEST:-$ROOT/release}")
-VERSION=${VERSION:-v1.6.0}
+VERSION=${VERSION:-v1.6.1}
 
 . "$ROOT/versions.sh"
 mkdir -p "$DEST"
@@ -37,4 +37,4 @@ done < <(el8_targets)
     sha256sum nginx2root-patches-"$VERSION"-*-el8-*.tar.xz > \
         "SHA256SUMS-$VERSION-el8"
 )
-echo "EL8 release bundle written to $DEST"
+echo "EL8 release bundles written to $DEST"

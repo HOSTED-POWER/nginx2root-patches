@@ -14,9 +14,9 @@ Their versions are deliberately ordered below the next distribution update, so i
 your distribution ships its own update later, it takes over automatically through
 normal package upgrades.
 
-**Current status (19 November 2026):** `v1.6.0` adds the native Rocky Linux 8
-AppStream 1.24 package family. `v1.5.0` adds the required native Oracle Linux 10
-package family. `v1.4.0` contains 13 native EL9 vendor/stream package
+**Current status (19 November 2026):** `v1.6.1` contains native RHEL 8 and Rocky
+Linux 8 AppStream 1.24 package families. `v1.5.0` adds the required native
+Oracle Linux 10 package family. `v1.4.0` contains 13 native EL9 vendor/stream package
 families, alongside the existing Debian and CentOS 7/8 releases. The signed Hosted Power APT
 repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
 12 currently selects `hp3`. Debian 13 now selects Debian's newer
@@ -109,19 +109,21 @@ supported 1.24 stream. AlmaLinux 9's retired 1.22 stream has not received these
 fixes. The `v1.4.0` release includes an exact native package for that retired
 stream where an immediate stream migration is not practical.
 
-## Rocky Linux 8
+## RHEL and Rocky Linux 8
 
-Rocky Linux 8's supported NGINX 1.24 AppStream still ships vulnerable
-`1:1.24.0-3.module+el8.10.0+40424+5b12c67a.6`. The `v1.6.0` release provides
-the exact native hotfix
-`1:1.24.0-3.module+el8.10.0+40424+5b12c67a.6.0.1.hp1` with all seven applicable
-fixes. It preserves Rocky's package split, configuration, ABI, and
-`nginx:1.24:8100020261111132044:e155f54d` module identity.
+RHEL 8 and Rocky Linux 8 still ship vulnerable NGINX 1.24 AppStream families.
+The `v1.6.1` release provides separate native hotfixes with all seven applicable
+fixes. Each preserves that vendor's exact package split, configuration, ABI,
+release lineage, and module identity:
 
-The installer rejects CentOS, AlmaLinux, Oracle Linux, another Rocky release,
-another stream, and any package release other than the exact Rocky base or this
-hotfix. A later Rocky `.7` package supersedes it through normal DNF version
-ordering.
+| Vendor | Base package | Hotfix package | Module identity |
+|---|---|---|---|
+| RHEL 8 | `1:1.24.0-3.module+el8.10.0+25265+69171071.6` | `1:1.24.0-3.module+el8.10.0+25265+69171071.6.0.1.hp1` | `nginx:1.24:8100020261102220528:489197e6` |
+| Rocky Linux 8 | `1:1.24.0-3.module+el8.10.0+40424+5b12c67a.6` | `1:1.24.0-3.module+el8.10.0+40424+5b12c67a.6.0.1.hp1` | `nginx:1.24:8100020261111132044:e155f54d` |
+
+The installers reject another vendor, release, stream, architecture, or package
+lineage. A later vendor `.7` package supersedes the matching hotfix through
+normal DNF version ordering.
 
 ## Enterprise Linux 9
 
@@ -239,11 +241,12 @@ The EL9 installer upgrades only the NGINX packages already installed, runs
 `nginx -t` before and after, confirms an active service remains active, and
 restarts it if any NGINX process still uses the replaced executable.
 
-For Rocky Linux 8 with the 1.24 AppStream enabled:
+For RHEL 8 or Rocky Linux 8 with the 1.24 AppStream enabled, download the exact
+matching vendor bundle. For example, Rocky Linux 8:
 
 ```bash
-tar -xJf nginx2root-patches-v1.6.0-rockylinux-el8-1.24-x86_64.tar.xz
-cd nginx2root-patches-v1.6.0-rockylinux-el8-1.24-x86_64
+tar -xJf nginx2root-patches-v1.6.1-rockylinux-el8-1.24-x86_64.tar.xz
+cd nginx2root-patches-v1.6.1-rockylinux-el8-1.24-x86_64
 sha256sum -c SHA256SUMS
 sudo ./install-el8-rpm.sh
 ```
@@ -282,7 +285,7 @@ On a host with Docker:
 ./build.sh
 ./release.sh
 ./build-el8.sh
-VERSION=v1.6.0 ./release-el8.sh
+VERSION=v1.6.1 ./release-el8.sh
 JOBS=6 ./build-el9.sh
 VERSION=v1.4.0 ./release-el9.sh
 ./build-el10.sh
@@ -339,6 +342,7 @@ releases need narrowly scoped context adaptations in `scripts/build-deb.sh` and
 - [Archived EPEL 7 packages](https://archives.fedoraproject.org/pub/archive/epel/7/)
 - [Archived CentOS Linux 8 AppStream packages](https://vault.centos.org/8.5.2111/AppStream/)
 - [Rocky Linux 8 AppStream source packages](https://download.rockylinux.org/pub/rocky/8/AppStream/source/tree/Packages/n/)
+- [Red Hat UBI 8 AppStream source packages](https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/appstream/source/SRPMS/Packages/n/)
 - [AlmaLinux NGINX security update guidance](https://almalinux.org/blog/2026-11-18-nginx2root/)
 - [AlmaLinux 9 erratum ALSA-2026-A025](https://errata.almalinux.org/9/ALSA-2026-A025.html)
 - [AlmaLinux 10 erratum ALSA-2026-A024](https://errata.almalinux.org/10/ALSA-2026-A024.html)
