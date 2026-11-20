@@ -14,12 +14,16 @@ These packages contain the complete fixes for every nginx2root vulnerability tha
 applies to each release. They are not a mitigation and need no follow-up.
 
 The packages preserve the distribution build configuration and package layout.
-Their versions are deliberately ordered below the next distribution update, so if
-your distribution ships its own update later, it takes over automatically through
-normal package upgrades.
+Their versions are deliberately ordered below the expected next distribution
+update that contains the complete applicable fix set. Rocky Linux 10 now has a
+lower-versioned partial security update; v1.7.0 intentionally remains installed
+because it covers four additional November CVEs.
 
-**Current status (19 November 2026):** `v1.7.0` contains native RHEL 10, Rocky
-Linux 10, and Oracle Linux 10 package families. `v1.6.1` contains native RHEL 8
+**Current status (20 November 2026):** Rocky Linux 10 now has an official package
+in its opt-in `security` repository, but its changelog contains five of the nine
+applicable fixes carried by `v1.7.0`. `v1.7.0` therefore remains the complete
+native RHEL 10, Rocky Linux 10, and Oracle Linux 10 package release. `v1.6.1`
+contains native RHEL 8
 and Rocky Linux 8 AppStream 1.24 package families. `v1.4.0` contains 13 native EL9 vendor/stream package
 families, alongside the existing Debian and CentOS 7/8 releases. The signed Hosted Power APT
 repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
@@ -156,8 +160,11 @@ and the HTTP/3 connection-lifetime fix. Every package changelog names each CVE.
 ## Enterprise Linux 10
 
 AlmaLinux 10 carries the complete official
-`2:1.26.3-16.el10_3.1.alma.3` fix in its normal repositories. RHEL 10 and Rocky
-Linux 10 still ship `2:1.26.3-16.el10_3.1`, whose November 13 erratum predates
+`2:1.26.3-16.el10_3.1.alma.3` fix in its normal repositories. Rocky Linux 10
+now carries `2:1.26.3-16.el10_3.1.0.1` in its opt-in `security` repository, but
+that build documents only the five core nginx2root fixes and omits
+CVE-2026-123640, CVE-2026-120967, CVE-2026-118899, and CVE-2026-125283.
+RHEL 10 still ships `2:1.26.3-16.el10_3.1`, whose November 13 erratum predates
 nginx2root and fixes different CVEs. Red Hat still marks RHEL 10 affected with
 no erratum. Oracle Linux 10 still ships `2:1.26.3-6.0.1.el10_2.7`.
 
@@ -174,6 +181,17 @@ Each bundle preserves that vendor's original package split, configuration,
 epoch, ABI, and non-modular identity. Its installer rejects every other OS,
 release, package family, and architecture. A later vendor `.2` package sorts
 above the RHEL and Rocky `.1.0.1.hp1` hotfix automatically.
+
+### Rocky Linux 10 partial vendor update
+
+Rocky's `2:1.26.3-16.el10_3.1.0.1` security build fixes CVE-2026-123007,
+CVE-2026-123633, CVE-2026-123634, CVE-2026-113425, and CVE-2026-121810. The
+v1.7.0 package fixes those five plus the four CVEs listed above. RPM correctly
+sorts `...0.1.hp1` above Rocky's partial `...0.1`, so `dnf update` keeps the
+complete package installed. Do not downgrade or `distro-sync` NGINX to the
+partial package. The live coverage test
+`scripts/test-rocky10-security-coverage.sh` deliberately fails when Rocky's
+EVR or documented CVE set changes, prompting a new handover review.
 
 ## Download and install
 
@@ -295,7 +313,9 @@ For example:
 ```
 
 No pin, hold, new epoch, diversion, or package-name change is used. A higher
-distribution package replaces the matching hotfix through normal package updates.
+complete distribution package replaces the matching hotfix through normal
+package updates. Rocky Linux 10's current lower partial update intentionally
+does not replace v1.7.0.
 
 ## Build and test
 
