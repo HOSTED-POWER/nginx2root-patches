@@ -23,7 +23,9 @@ Linux 10, and Oracle Linux 10 package families. `v1.6.1` contains native RHEL 8
 and Rocky Linux 8 AppStream 1.24 package families. `v1.4.0` contains 13 native EL9 vendor/stream package
 families, alongside the existing Debian and CentOS 7/8 releases. The signed Hosted Power APT
 repository also carries the complete Debian 12 and 13 `hp3` package sets. Debian
-12 currently selects `hp3`. Debian 13 now selects Debian's newer
+12 now selects Debian's newer `1.22.1-9+deb12u11` (DLA-4918-1, 19 November)
+automatically; it fixes the same CVEs as the Bookworm `hp3` package listed here.
+Debian 13 now selects Debian's newer
 `1.26.3-3+deb13u11` automatically; inspection of that source package confirms
 that it contains all nine applicable NGINX 1.30.7 security patches listed here.
 
@@ -61,6 +63,10 @@ consults repository metadata and is not reliable for third-party packages:
 | 11 Bullseye | `1.18.0-6.1+deb11u9` | `1.18.0-6.1+deb11u9.1~hp3` | the same seven fixes as Buster |
 | 12 Bookworm | `1.22.1-9+deb12u10` | `1.22.1-9+deb12u10.1~hp3` | the same seven, plus CVE-2026-15176, CVE-2026-93479, CVE-2026-97205 and additional CVE-2023-44487 hardening |
 | 13 Trixie | `1.26.3-3+deb13u10` | `1.26.3-3+deb13u10.1~hp3` | all nine applicable NGINX 1.30.7 fixes, including CVE-2026-120967 and CVE-2026-121810 |
+
+Debian's official Bookworm `1.22.1-9+deb12u11` package (DLA-4918-1) now supersedes
+the Bookworm hotfix through normal version ordering; it lists the same CVEs as
+`deb12u10.1~hp3`.
 
 Debian's official Trixie `1.26.3-3+deb13u11` package now supersedes the Trixie
 hotfix through normal version ordering. Its source has the same nine relevant
